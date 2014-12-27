@@ -19,15 +19,15 @@
  */
 
 class FMainClass extends GSInfo {
-	function GetAuthor()		{ return "alberth & andythenorth"; }
-	function GetName()			{ return "BusyBee"; }
-	function GetDescription() 	{ return "Goal: Have fun"; }
-	function GetVersion()		{ return 0; }
-	function GetDate()			{ return "2014-12-27"; }
-	function CreateInstance()	{ return "MainClass"; }
-	function GetShortName()		{ return "BBEE"; }
-	function GetAPIVersion()	{ return "1.4"; }
-	function GetUrl()			{ return ""; }
+    function GetAuthor()        { return "alberth & andythenorth"; }
+    function GetName()          { return "BusyBee"; }
+    function GetDescription()   { return "Goal: Have fun"; }
+    function GetVersion()       { return 0; }
+    function GetDate()          { return "2014-12-27"; }
+    function CreateInstance()   { return "MainClass"; }
+    function GetShortName()     { return "BBEE"; }
+    function GetAPIVersion()    { return "1.4"; }
+    function GetUrl()           { return ""; }
 }
 
 RegisterGS(FMainClass());
