@@ -12,7 +12,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with BusyBee If not, see <http://www.gnu.org/licenses/> or
+ * along with BusyBee; If not, see <http://www.gnu.org/licenses/> or
  * write to the Free Software Foundation, Inc., 51 Franklin Street,
  * Fifth Floor, Boston, MA 02110-1301 USA.
  */
@@ -25,7 +25,7 @@ class FMainClass extends GSInfo {
     function GetDate()          { return "2014-12-27"; }
     function CreateInstance()   { return "FMainClass"; }
     function GetShortName()     { return "BBEE"; }
-    function GetAPIVersion()    { return "1.4"; }
+    function GetAPIVersion()    { return "1.5"; }
     function GetUrl()           { return ""; }
 }
 
