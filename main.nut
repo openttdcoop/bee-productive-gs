@@ -10,6 +10,12 @@ function FMainClass::Start()
         local label = cid + " (" + GSCargo.GetCargoLabel(cid) + ")"
         if (GSCargo.IsFreight(cid)) {
             GSLog.Info(label + " is freight.");
+            local accept_inds = GSIndustryList_CargoAccepting(cid);
+            local prod_inds = GSIndustryList_CargoProducing(cid);
+            GSLog.Info(GSIndustryList_CargoAccepting(cid))
+            foreach (accept_ind in accept_inds) {
+                GSLog.Info(GSIndustry.GetName(accept_ind));
+            }
         } else if (GSCargo.GetTownEffect(cid) != GSCargo.TE_NONE) {
             GSLog.Info(label + " affects town.");
         } else {
@@ -27,7 +33,7 @@ function FMainClass::Start()
             lake_news.AddParam(200);
         }
         GSNews.Create(GSNews.NT_GENERAL, lake_news, GSCompany.COMPANY_INVALID);
-		GSGoal.Question(1, GSCompany.COMPANY_INVALID, lake_news, GSGoal.QT_INFORMATION, GSGoal.BUTTON_GO);
+        GSGoal.Question(1, GSCompany.COMPANY_INVALID, lake_news, GSGoal.QT_INFORMATION, GSGoal.BUTTON_GO);
 //        GSLog.Info("I am a very new AI with a ticker called MyNewAI and I am at tick " + this.GetTick());
         this.Sleep(50);
     }
