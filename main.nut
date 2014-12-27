@@ -27,6 +27,7 @@ function FMainClass::Start()
             lake_news.AddParam(200);
         }
         GSNews.Create(GSNews.NT_GENERAL, lake_news, GSCompany.COMPANY_INVALID);
+		GSGoal.Question(1, GSCompany.COMPANY_INVALID, lake_news, GSGoal.QT_INFORMATION, GSGoal.BUTTON_GO);
 //        GSLog.Info("I am a very new AI with a ticker called MyNewAI and I am at tick " + this.GetTick());
         this.Sleep(50);
     }
