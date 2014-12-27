@@ -26,7 +26,7 @@ class FMainClass extends GSInfo {
     function GetDate()          { return "2014-12-27"; }
     function CreateInstance()   { return "MainClass"; }
     function GetShortName()     { return "BBEE"; }
-    function GetAPIVersion()    { return "1.4"; }
+    function GetAPIVersion()    { return "1.5"; }
     function GetUrl()           { return ""; }
 }
 
