@@ -5,16 +5,18 @@ class FMainClass extends GSController
 
 function FMainClass::Start()
 {
-//    for (local cid = 0; cid < 32; cid += 1) {
-//        if (!GSCargo.IsValidCargo(cid)) continue;
-//        if (GSCargo.IsFreight(cid)) {
-//            GSLog.Info(cid + " is freight.");
-//        } else if (GSCargo.GetTownEffect(cid) != GSCargo.Town_Effect.TE_NONE) {
-//            GSLog.Info(cid + " affects town.");
-//        } else {
-//            GSLog.Info(cid + " does nothing.");
-//        }
-//    }
+    for (local cid = 0; cid < 32; cid += 1) {
+        if (!GSCargo.IsValidCargo(cid)) continue;
+        local label = cid + " (" + GSCargo.GetCargoLabel(cid) + ")"
+        if (GSCargo.IsFreight(cid)) {
+            GSLog.Info(label + " is freight.");
+        } else if (GSCargo.GetTownEffect(cid) != GSCargo.TE_NONE) {
+            GSLog.Info(label + " affects town.");
+        } else {
+            GSLog.Info(label + " does nothing.");
+        }
+    }
+
     while (true) {
         if (GSBase.Chance(1, 5)) {
             GSLog.Info("We're at at the bottom of the lake.");
