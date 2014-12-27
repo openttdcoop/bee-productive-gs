@@ -12,9 +12,11 @@ function FMainClass::Start()
             GSLog.Info(label + " is freight.");
             local accept_inds = GSIndustryList_CargoAccepting(cid);
             local prod_inds = GSIndustryList_CargoProducing(cid);
-            GSLog.Info(GSIndustryList_CargoAccepting(cid))
-            foreach (accept_ind in accept_inds) {
-                GSLog.Info(GSIndustry.GetName(accept_ind));
+            foreach (industry,_ in prod_inds) {
+                GSLog.Info("Produces " + label + " @ " + GSIndustry.GetName(industry));
+            }
+           foreach (industry,_ in accept_inds) {
+                GSLog.Info("Accepts " + label + " @ " + GSIndustry.GetName(industry));
             }
         } else if (GSCargo.GetTownEffect(cid) != GSCargo.TE_NONE) {
             GSLog.Info(label + " affects town.");
@@ -26,11 +28,11 @@ function FMainClass::Start()
     while (true) {
         local lake_news = GSText(GSText.STR_LAKE_NEWS);
         if (GSBase.Chance(1, 5)) {
-            GSLog.Info("We're at at the bottom of the lake.");
-            lake_news.AddParam(100);
+//            GSLog.Info("We're at at the bottom of the lake.");
+//            lake_news.AddParam(100);
         } else {
-            GSLog.Info("We're not at the bottom of the lake.");
-            lake_news.AddParam(200);
+//            GSLog.Info("We're not at the bottom of the lake.");
+//            lake_news.AddParam(200);
         }
 //        GSNews.Create(GSNews.NT_GENERAL, lake_news, GSCompany.COMPANY_INVALID);
 //        GSGoal.Question(1, GSCompany.COMPANY_INVALID, lake_news, GSGoal.QT_INFORMATION, GSGoal.BUTTON_GO);
