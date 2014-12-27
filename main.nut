@@ -15,7 +15,7 @@ function FMainClass::Start()
             foreach (industry,_ in prod_inds) {
                 GSLog.Info("Produces " + label + " @ " + GSIndustry.GetName(industry));
             }
-           foreach (industry,_ in accept_inds) {
+            foreach (industry,_ in accept_inds) {
                 GSLog.Info("Accepts " + label + " @ " + GSIndustry.GetName(industry));
             }
         } else if (GSCargo.GetTownEffect(cid) != GSCargo.TE_NONE) {
