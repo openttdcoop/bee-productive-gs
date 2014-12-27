@@ -1,4 +1,4 @@
-class FMainClass extends GSController 
+class FMainClass extends GSController
 {
     function Start();
 }
@@ -23,6 +23,7 @@ function FMainClass::Start()
         } else {
             GSLog.Info("We're not at the bottom of the lake.");
         }
+        GSNews.Create(GSNews.NT_GENERAL, "There is a fish here", GSCompany.COMPANY_INVALID);
 //        GSLog.Info("I am a very new AI with a ticker called MyNewAI and I am at tick " + this.GetTick());
         this.Sleep(50);
     }
