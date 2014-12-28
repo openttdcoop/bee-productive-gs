@@ -70,6 +70,8 @@ function FMainClass::FindChallenge(cargo, distance)
 
 function FMainClass::Start()
 {
+	// Wait for the game to start
+	this.Sleep(1);
     this.ExamineCargoes();
 
 //    foreach(idx, val in cargoes) {
@@ -79,6 +81,12 @@ function FMainClass::Start()
     local accept_ind = FindChallenge(cargoes[3], 50);
     if (accept_ind != null) {
         GSLog.Info("Use " + GSIndustry.GetName(accept_ind));
+    }
+
+    // this is proof of concept only
+    for (local cid = GSCompany.COMPANY_FIRST; cid < GSCompany.COMPANY_LAST; cid++) {
+        GSLog.Info(cid);
+        GSGoal.New(cid, "Foo", GSGoal.GT_NONE, 0);
     }
 
 //    for (local cid = 0; cid < 32; cid += 1) {
