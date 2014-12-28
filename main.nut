@@ -181,10 +181,10 @@ function FMainClass::CreateChallenge(cid)
                     destination_string = GSText(GSText.STR_INDUSTRY_NAME, destination);
                     goal_type = GSGoal.GT_INDUSTRY;
                 }
-                local goal_text = GSText(GSText.STR_COMPANY_GOAL, cargo, amount, destination_string);
                 GSLog.Info("Company " + cid + ": " + amount + " of " +
                            GSCargo.GetCargoLabel(this.cargoes[cargo].cid) +
                            " to " + destination_name);
+                local goal_text = GSText(GSText.STR_COMPANY_GOAL, cargo, amount, destination_string);
                 local goal_uid = GSGoal.New(cid, goal_text, goal_type, destination);
                 // ¿ we're probably going to want to store the GoalID in the company goal data ?
                 // for now, just log it
