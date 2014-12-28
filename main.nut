@@ -185,7 +185,10 @@ function FMainClass::CreateChallenge(cid)
                 GSLog.Info("Company " + cid + ": " + amount + " of " +
                            GSCargo.GetCargoLabel(this.cargoes[cargo].cid) +
                            " to " + destination_name);
-                GSGoal.New(cid, goal_text, goal_type, destination);
+                local goal_uid = GSGoal.New(cid, goal_text, goal_type, destination);
+                // ¿ we're probably going to want to store the GoalID in the company goal data ?
+                // for now, just log it
+                GSLog.Info("Goal ID: " + goal_uid)
                 break;
             }
         }
