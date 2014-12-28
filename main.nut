@@ -1,6 +1,12 @@
+
+require("company.nut");
+
 class FMainClass extends GSController
 {
     cargoes = null; // Cargoes of the game (index -> 'cid' number, 'freight' boolean, 'effect' on town).
+    num_cargoes = 0;
+
+    companies = null;
 
     function Start();
 }
@@ -9,15 +15,15 @@ class FMainClass extends GSController
 function FMainClass::ExamineCargoes()
 {
     this.cargoes = {};
-    local num_cargoes = 0;
+    this.num_cargoes = 0;
 
     for (local cid = 0; cid < 32; cid += 1) {
         if (!GSCargo.IsValidCargo(cid)) continue;
 
         local is_freight = GSCargo.IsFreight(cid);
         local town_effect = GSCargo.GetTownEffect(cid);
-        cargoes[num_cargoes] <- {cid=cid, freight=is_freight, effect=town_effect};
-        num_cargoes += 1;
+        this.cargoes[this.num_cargoes] <- {cid=cid, freight=is_freight, effect=town_effect};
+        this.num_cargoes += 1;
     }
 }
 
@@ -139,37 +145,106 @@ function FMainClass::FindChallenge(cargo_id, distance, company)
     return best_accept;
 }
 
+// Try to add a goal for a company.
+function FMainClass::CreateChallenge(cid)
+{
+    local attempt = 0;
+    while (attempt < 20) {
+        local cargo = GSBase.RandRange(this.num_cargoes);
+        local distance = GSBase.RandRange(200) + 50; // Distance 50 .. 250 tiles.
+        local accept = FindChallenge(cargo, distance, cid);
+        if (accept != null) {
+            local cdata = this.companies[cid];
+            local amount = GSBase.RandRange(100) + 1;
+            if (amount < 10) {
+                amount = amount * 25; // 25 .. 225
+            } else if (amount < 10 + 35) {
+                amount = 10 * 25 + (amount - 10) * 50; // 250..1950
+            } else {
+                amount = 10 * 25 + 35 * 50 + (amount - 10 - 35) * 100; // 2000..7500
+            }
+            if (cdata != null) {
+                cdata.AddActiveGoal(cargo, accept, amount);
+                GSLog.Info("Company " + cid + " should deliver " + amount +
+                           " of " + GSCargo.GetCargoLabel(this.cargoes[cargo].cid));
+                break;
+            }
+        }
+        attempt += 1;
+    }
+}
+
 function FMainClass::Start()
 {
     this.Sleep(1); // Wait for the game to start.
 
     this.ExamineCargoes();
 
-    local accept = FindChallenge(0, 50, GSCompany.COMPANY_FIRST); // Mail challenge
-    if (accept != null) {
-        if ("town" in accept) {
-            GSLog.Info("Use town " + GSTown.GetName(accept.town));
-        } else {
-            GSLog.Info("Use industry " + GSIndustry.GetName(accept.ind));
-        }
-    }
+//    local accept = FindChallenge(0, 50, GSCompany.COMPANY_FIRST); // Mail challenge
+//    if (accept != null) {
+//        if ("town" in accept) {
+//            GSLog.Info("Use town " + GSTown.GetName(accept.town));
+//        } else {
+//            GSLog.Info("Use industry " + GSIndustry.GetName(accept.ind));
+//        }
+//    }
 
-    local accept = FindChallenge(3, 50, GSCompany.COMPANY_FIRST); // Mail challenge
-    if (accept != null) {
-        if ("town" in accept) {
-            GSLog.Info("Use town " + GSTown.GetName(accept.town));
-        } else {
-            GSLog.Info("Use industry " + GSIndustry.GetName(accept.ind));
-        }
-    }
-
-    // this is proof of concept only
+    // Construct empty companies.
+    this.companies = {};
     for (local cid = GSCompany.COMPANY_FIRST; cid <= GSCompany.COMPANY_LAST; cid++) {
-        GSLog.Info(cid);
-        GSGoal.New(cid, "Foo", GSGoal.GT_NONE, 0);
+        this.companies[cid] <- null;
     }
 
+    // Main event loop.
+    local companies_timeout = 0;
+    local goal_timeout = 0;
     while (true) {
+        // Check for new or disappeared companies.
+        if (companies_timeout <= 0) {
+            for (local cid = GSCompany.COMPANY_FIRST; cid <= GSCompany.COMPANY_LAST; cid++) {
+                if (GSCompany.ResolveCompanyID(cid) == GSCompany.COMPANY_INVALID) {
+                    if (this.companies[cid] != null) {
+                        // XXX Handle company disappearing
+                        GSLog.Info("Deleted company " + cid);
+                    }
+                    this.companies[cid] = null;
+                } else {
+                    if (this.companies[cid] == null) {
+                        this.companies[cid] = CompanyData(cid);
+                        GSLog.Info("Created company " + cid);
+                    }
+                }
+            }
+            companies_timeout = 50 * 74; // 50 days until the next companies check.
+        }
+
+        // Check for having to create new goals.
+        if (goal_timeout <= 0) {
+            local total_missing = 0; // Total number of missing goals.
+            local best_cid = null;
+            local cid_missing = 0;
+            foreach (cid, cdata in companies) {
+                if (cdata == null) continue;
+                local missing = cdata.GetMissingGoalCount();
+                total_missing += missing;
+
+                // Find comapny with most missing goals.
+                if (missing > cid_missing) {
+                    best_cid = cid;
+                    cid_missing = missing;
+                }
+            }
+            if (best_cid != null) this.CreateChallenge(best_cid);
+
+            if (total_missing > 1) {
+                goal_timeout = 1 * 74; // If more missing goals, wait only a short while.
+            } else {
+                goal_timeout = 30 * 74;
+            }
+        }
+
+//        GSGoal.New(cid, "Foo", GSGoal.GT_NONE, 0);
+
         local lake_news = GSText(GSText.STR_LAKE_NEWS);
         if (GSBase.Chance(1, 5)) {
 //            GSLog.Info("We're at at the bottom of the lake.");
@@ -181,6 +256,16 @@ function FMainClass::Start()
 //        GSNews.Create(GSNews.NT_GENERAL, lake_news, GSCompany.COMPANY_INVALID);
 //        GSGoal.Question(1, GSCompany.COMPANY_INVALID, lake_news, GSGoal.QT_INFORMATION, GSGoal.BUTTON_GO);
 //        GSLog.Info("I am a very new AI with a ticker called MyNewAI and I am at tick " + this.GetTick());
-        this.Sleep(5000);
+
+        // Sleep until the next event.
+        local delay_time = 5000;
+        if (delay_time > companies_timeout) delay_time = companies_timeout;
+        if (delay_time > goal_timeout) delay_time = goal_timeout;
+
+        // XXX Perhaps check for company events?
+        if (delay_time > 0) this.Sleep(delay_time);
+
+        companies_timeout -= delay_time;
+        goal_timeout -= delay_time;
     }
 }
