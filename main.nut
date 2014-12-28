@@ -115,16 +115,19 @@ function FMainClass::GetDistanceScore(desired, actual)
 // Try to find a challenge for a given cargo and a desired distance.
 // @param cargo Cargo entry from FMainClass.cargoes (table with 'cid', 'freight', 'effect').
 // @param distance Desired distance between source and target.
-// @param company Company to find a challenge for.
+// @param cid Company to find a challenge for.
 // @return Best accepting industry to use, or 'null' if no industry-pair found.
-function FMainClass::FindChallenge(cargo_id, distance, company)
+function FMainClass::FindChallenge(cargo_id, distance, cid)
 {
     local prods = this.FindSources(cargo_id);
-    local accepts = this.FindDestinations(cargo_id, company);
+    local accepts = this.FindDestinations(cargo_id, cid);
+    local cdata = this.companies[cid];
 
     local best_score = 0; // Best overall distance.
     local best_accept = null; // Best accepting to target.
     foreach (_, accept in accepts) {
+        if (cdata != null && cdata.HasGoal(cargo_id, accept)) continue; // Prevent duplicates.
+
         local min_prod_distance = distance * 2; // Smallest found distance to the accepting industry.
         local prod_score = GetDistanceScore(distance, min_prod_distance);
         foreach (_, prod in prods) {
@@ -165,6 +168,7 @@ function FMainClass::CreateChallenge(cid)
             }
             if (cdata != null) {
                 cdata.AddActiveGoal(cargo, accept, amount);
+
                 local destination_name = "foo";
                 local destination_string = "foo";
                 if ("town" in accept) {
