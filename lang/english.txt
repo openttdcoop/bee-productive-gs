@@ -1,1 +1,4 @@
-STR_LAKE_NEWS  :There are {NUM} {}fish here
+STR_LAKE_NEWS       :There are {NUM} {}fish here
+STR_COMPANY_GOAL    :Deliver {NUM} of {CARGO_LIST} to {STRING}
+STR_TOWN_NAME       :{TOWN}
+STR_INDUSTRY_NAME   :{INDUSTRY}
