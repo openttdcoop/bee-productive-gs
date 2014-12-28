@@ -169,20 +169,23 @@ function FMainClass::CreateChallenge(cid)
             if (cdata != null) {
                 cdata.AddActiveGoal(cargo, accept, amount);
 
-                local destination_name = "foo";
-                local destination_string = "foo";
+                local destination, destination_name, destination_string, goal_type;
                 if ("town" in accept) {
-                    destination_name = GSTown.GetName(accept.town);
-                    destination_string = GSText(GSText.STR_TOWN_NAME, accept.town);
-                } else if ("ind" in accept) {
-                    destination_name = GSIndustry.GetName(accept.ind);
-                    destination_string = GSText(GSText.STR_INDUSTRY_NAME, accept.ind);
+                    destination = accept.town;
+                    destination_name = GSTown.GetName(destination);
+                    destination_string = GSText(GSText.STR_TOWN_NAME, destination);
+                    goal_type = GSGoal.GT_TOWN;
+                } else {
+                    destination = accept.ind;
+                    destination_name = GSIndustry.GetName(destination);
+                    destination_string = GSText(GSText.STR_INDUSTRY_NAME, destination);
+                    goal_type = GSGoal.GT_INDUSTRY;
                 }
                 local goal_text = GSText(GSText.STR_COMPANY_GOAL, amount, 1 << cargo, destination_string);
                 GSLog.Info("Company " + cid + ": " + amount + " of " +
                            GSCargo.GetCargoLabel(this.cargoes[cargo].cid) +
                            " to " + destination_name);
-                GSGoal.New(cid, goal_text, GSGoal.GT_NONE, 0);
+                GSGoal.New(cid, goal_text, goal_type, destination);
                 break;
             }
         }
