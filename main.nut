@@ -244,7 +244,7 @@ function FMainClass::Start()
                 local missing = cdata.GetMissingGoalCount();
                 total_missing += missing;
 
-                // Find comapny with most missing goals.
+                // Find company with most missing goals.
                 if (missing > cid_missing) {
                     best_cid = cid;
                     cid_missing = missing;
@@ -259,19 +259,9 @@ function FMainClass::Start()
             }
         }
 
-//        GSGoal.New(cid, "Foo", GSGoal.GT_NONE, 0);
-
-        local lake_news = GSText(GSText.STR_LAKE_NEWS);
-        if (GSBase.Chance(1, 5)) {
-//            GSLog.Info("We're at at the bottom of the lake.");
-//            lake_news.AddParam(100);
-        } else {
-//            GSLog.Info("We're not at the bottom of the lake.");
-//            lake_news.AddParam(200);
-        }
+//        local lake_news = GSText(GSText.STR_LAKE_NEWS);
 //        GSNews.Create(GSNews.NT_GENERAL, lake_news, GSCompany.COMPANY_INVALID);
 //        GSGoal.Question(1, GSCompany.COMPANY_INVALID, lake_news, GSGoal.QT_INFORMATION, GSGoal.BUTTON_GO);
-//        GSLog.Info("I am a very new AI with a ticker called MyNewAI and I am at tick " + this.GetTick());
 
         // Sleep until the next event.
         local delay_time = 5000;
