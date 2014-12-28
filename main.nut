@@ -1,10 +1,34 @@
 class FMainClass extends GSController
 {
+    cargoes = null; // Cargoes of the game (index -> 'cid' number, 'freight' boolean, 'effect' on town).
+
     function Start();
+}
+
+// Examine and store cargo types of the game.
+function FMainClass::ExamineCargoes()
+{
+    this.cargoes = {};
+    local num_cargoes = 0;
+
+    for (local cid = 0; cid < 32; cid += 1) {
+        if (!GSCargo.IsValidCargo(cid)) continue;
+
+        local is_freight = GSCargo.IsFreight(cid);
+        local town_effect = GSCargo.GetTownEffect(cid);
+        cargoes[num_cargoes] <- {cid=cid, freight=is_freight, effect=town_effect};
+        num_cargoes += 1;
+    }
 }
 
 function FMainClass::Start()
 {
+    this.ExamineCargoes();
+
+//    foreach(idx, val in cargoes) {
+//        GSLog.Info(idx + " : " + GSCargo.GetCargoLabel(val.cid) + ", " + val.cid + ", " + val.freight + ", " + val.effect);
+//    }
+
     for (local cid = 0; cid < 32; cid += 1) {
         if (!GSCargo.IsValidCargo(cid)) continue;
         local label = cid + " (" + GSCargo.GetCargoLabel(cid) + ")"
