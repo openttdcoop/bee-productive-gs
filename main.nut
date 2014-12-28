@@ -181,7 +181,7 @@ function FMainClass::CreateChallenge(cid)
                     destination_string = GSText(GSText.STR_INDUSTRY_NAME, destination);
                     goal_type = GSGoal.GT_INDUSTRY;
                 }
-                local goal_text = GSText(GSText.STR_COMPANY_GOAL, cargo, amount, 1 << cargo, destination_string);
+                local goal_text = GSText(GSText.STR_COMPANY_GOAL, cargo, amount, destination_string);
                 GSLog.Info("Company " + cid + ": " + amount + " of " +
                            GSCargo.GetCargoLabel(this.cargoes[cargo].cid) +
                            " to " + destination_name);
