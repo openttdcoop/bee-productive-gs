@@ -165,8 +165,10 @@ function FMainClass::CreateChallenge(cid)
             }
             if (cdata != null) {
                 cdata.AddActiveGoal(cargo, accept, amount);
-                GSLog.Info("Company " + cid + " should deliver " + amount +
-                           " of " + GSCargo.GetCargoLabel(this.cargoes[cargo].cid));
+                local goal_text = "Company " + cid + " should deliver " + amount +
+                           " of " + GSCargo.GetCargoLabel(this.cargoes[cargo].cid);
+                GSLog.Info(goal_text);
+                GSGoal.New(cid, goal_text, GSGoal.GT_NONE, 0);
                 break;
             }
         }
