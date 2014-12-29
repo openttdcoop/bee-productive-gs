@@ -1,5 +1,18 @@
 // Company related data.
 
+// A goal for a company.
+class CompanyGoal {
+    cid = null;
+    accept = null;
+    wanted_amount = null;
+
+    constructor(cid, accept, wanted_amount) {
+        this.cid = cid;
+        this.accept = accept;
+        this.wanted_amount = wanted_amount;
+    }
+};
+
 class CompanyData {
     cid = null;
 
@@ -35,7 +48,7 @@ function CompanyData::AddActiveGoal(cargo_id, accept, amount)
 {
     foreach (num, goal in this.active_goals) {
         if (goal == null) {
-            this.active_goals[num] = {cid=cargo_id, accept=accept, amount=amount};
+            this.active_goals[num] = CompanyGoal(cargo_id, accept, amount);
             break;
         }
     }
