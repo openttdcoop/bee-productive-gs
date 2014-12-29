@@ -2,24 +2,57 @@
 
 // A goal for a company.
 class CompanyGoal {
-    cid = null;
-    accept = null;
-    wanted_amount = null;
+    cargo_id = null;      // Cargo id
+    accept = null;        // Accepting resource.
+    wanted_amount = null; // Amount to deliver for achieving the goal.
+    delivered_amount = 0; // Amount delivered so far.
 
-    constructor(cid, accept, wanted_amount) {
-        this.cid = cid;
+    constructor(cargo_id, accept, wanted_amount) {
+        this.cargo_id = cargo_id;
         this.accept = accept;
         this.wanted_amount = wanted_amount;
     }
+
+    function AddMonitorElement(mon);
+    function UpdateDelivered(mon);
 };
 
+// Add an entry to the collection of monitored things.
+// @param [inout] mon Table with 'cargo_id' to 'town' and 'ind' tables, holding ids to 'null'.
+function CompanyGoal::AddMonitorElement(mon)
+{
+    if (!(this.cargo_id in mon)) mon[this.cargo_id] <- {};
+    mon = mon[this.cargo_id];
+    if ("ind" in this.accept) {
+        if (!("ind" in mon)) mon.ind <- {};
+        mon.ind[this.accept.ind] <- null;
+    } else {
+        if (!("town" in mon)) mon.town <- {};
+        mon.town[this.accept.town] <- null;
+    }
+}
+
+// Update the delivered amount from the monitored amounts.
+function CompanyGoal::UpdateDelivered(mon)
+{
+    local delivered;
+    if ("ind" in this.accept) {
+        delivered = mon[this.cargo_id].ind[this.accept.ind];
+    } else {
+        delivered = mon[this.cargo_id].town[this.accept.town];
+    }
+
+    this.delivered_amount += delivered;
+}
+
+
 class CompanyData {
-    cid = null;
+    comp_id = null;
 
     active_goals = {};
 
-    constructor(cid) {
-        this.cid = cid;
+    constructor(comp_id) {
+        this.comp_id = comp_id;
 
         for (local num = 0; num < 5; num += 1) this.active_goals[num] <- null;
     }
@@ -27,6 +60,9 @@ class CompanyData {
     function GetMissingGoalCount();
     function AddActiveGoal(cargo_id, accept, amount);
     function HasGoal(cargo_id, accept);
+
+    function AddMonitorElement(mon);
+    function UpdateDelivered(mon);
 };
 
 // Find the number of active goals that are missing for this company.
@@ -62,7 +98,7 @@ function CompanyData::HasGoal(cargo_id, accept)
 {
     foreach (num, goal in this.active_goals) {
         if (goal == null) continue;
-        if (goal.cid != cargo_id) continue;
+        if (goal.cargo_id != cargo_id) continue;
         if ("town" in accept) {
             if ("ind" in goal.accept || accept.town != goal.accept.town) continue;
         } else {
@@ -71,4 +107,33 @@ function CompanyData::HasGoal(cargo_id, accept)
         return true;
     }
     return false;
+}
+
+// Add monitor elements of a company, if they exist.
+// @param [inout] cmon Monitors of all companies, updated in-place.
+//      Result is 'comp_id' number to 'cargo_id' numbers to 'ind' and/or 'town' indices to 'null'
+function CompanyData::AddMonitorElements(cmon)
+{
+    local mon = {};
+    foreach (num, goal in this.active_goals) {
+        if (goal == null) continue;
+        goal.AddMonitorElement(mon);
+    }
+    if (mon.len() == 0) return;
+
+    cmon[this.comp_id] <- mon;
+    return;
+}
+
+// Distribute the delivered amounts to the goals.
+// @param cmon Monitor results of all companies, 'comp_id' numbers to 'cargo_id' number to
+//          'ind' and/or 'town' to resource indices to amount.
+function CompanyData::UpdateDelivereds(cmon)
+{
+    if (this.comp_id in cmon) {
+        foreach (num, goal in this.active_goals) {
+            if (goal == null) continue;
+            goal.UpdateDelivered(cmon[this.comp_id]);
+        }
+    }
 }

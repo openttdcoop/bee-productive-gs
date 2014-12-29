@@ -220,6 +220,8 @@ function FMainClass::Start()
     // Main event loop.
     local companies_timeout = 0;
     local goal_timeout = 0;
+    local monitor_timeout = 0;
+    local old_cmonitor = null;
     while (true) {
         // Check for new or disappeared companies.
         if (companies_timeout <= 0) {
@@ -227,6 +229,7 @@ function FMainClass::Start()
                 if (GSCompany.ResolveCompanyID(cid) == GSCompany.COMPANY_INVALID) {
                     if (this.companies[cid] != null) {
                         // XXX Handle company disappearing
+                        monitor_timeout = 0; // Force updating of the goals.
                         GSLog.Info("Deleted company " + cid);
                     }
                     this.companies[cid] = null;
@@ -256,13 +259,44 @@ function FMainClass::Start()
                     cid_missing = missing;
                 }
             }
-            if (best_cid != null) this.CreateChallenge(best_cid);
+            if (best_cid != null) {
+                this.CreateChallenge(best_cid);
+                monitor_timeout = 0; // Force updating of the monitor.
+            }
 
             if (total_missing > 1) {
                 goal_timeout = 1 * 74; // If more missing goals, wait only a short while.
             } else {
                 goal_timeout = 30 * 74;
             }
+        }
+
+        // Monitoring and updating of company goals. Note that code above may force an update.
+        if (monitor_timeout <= 0) {
+            local cmon = {};
+            // Collect monitors that are of interest.
+            foreach (cid, cdata in companies) {
+                if (cdata == null) continue;
+                cdata.AddMonitorElements(cmon);
+            }
+
+            if (old_cmonitor == null) { // First run, clear any old monitoring.
+                GSCargoMonitor.StopAllMonitoring();
+                old_cmonitor = {};
+            }
+            this.FillMonitors(cmon); // Query the monitors.
+
+            // Distribute the retrieved data.
+            foreach (cid, cdata in companies) {
+                if (cdata == null) continue;
+                cdata.UpdateDelivereds(cmon);
+            }
+
+            // Drop obsolete monitors.
+            this.UpdateCompanyMonitors(old_cmonitor, cmon);
+            old_cmonitor = cmon;
+
+            monitor_timeout = 15 * 74; // By default, check monitors every 15 days (other processes may force a check earlier).
         }
 
 //        local lake_news = GSText(GSText.STR_LAKE_NEWS);
@@ -272,12 +306,109 @@ function FMainClass::Start()
         // Sleep until the next event.
         local delay_time = 5000;
         if (delay_time > companies_timeout) delay_time = companies_timeout;
-        if (delay_time > goal_timeout) delay_time = goal_timeout;
+        if (delay_time > goal_timeout)      delay_time = goal_timeout;
+        if (delay_time > monitor_timeout)   delay_time = monitor_timeout;
 
         // XXX Perhaps check for company events?
         if (delay_time > 0) this.Sleep(delay_time);
 
         companies_timeout -= delay_time;
-        goal_timeout -= delay_time;
+        goal_timeout      -= delay_time;
+        monitor_timeout   -= delay_time;
+    }
+}
+
+// Fill company monitors with monitored amounts.
+// @param [inout] cmon Table of 'comp_id' number to 'cargo_id' number to
+//      'ind' and/or 'town' to resource indices to 'null'.
+function FMainClass::FillMonitors(cmon)
+{
+    foreach (comp_id, mon in cmon) {
+        foreach (cargo_id, rmon in mon) {
+            if ("ind" in rmon) {
+                foreach (ind_id, _ in rmon.ind) {
+                    local amount = GSCargoMonitor.GetIndustryDeliveryAmount(comp_id, cargo_id, ind_id, true);
+                    rmon.ind[ind_id] = amount;
+                    local text = "Industry " + GSIndustry.GetName(ind_id) + " received " + amount +
+                                 " units for company " + comp_id +
+                                 ", cargo " + GSCargo.GetCargoLabel(cargo_id);
+                    GSLog.Info(text);
+                }
+            }
+            if ("town" in rmon) {
+                foreach (town_id, _ in rmon.town) {
+                    local amount = GSCargoMonitor.GetTownDeliveryAmount(comp_id, cargo_id, town_id, true);
+                    rmon.town[town_id] = amount;
+                    local text = "Town " + GSTown.GetName(town_id) + " received " + amount +
+                                 " units for company " + comp_id +
+                                 ", cargo " + GSCargo.GetCargoLabel(cargo_id);
+                    GSLog.Info(text);
+                }
+            }
+        }
+    }
+}
+
+function FMainClass::UpdateCompanyMonitors(old_cmon, cmon)
+{
+    foreach (comp_id, old_mon in old_cmon) {
+        if (comp_id in cmon) {
+            this.UpdateCargoMonitors(comp_id, old_mon, cmon[comp_id]);
+        } else {
+            this.UpdateCargoMonitors(comp_id, old_mon, {});
+        }
+    }
+}
+
+function FMainClass::UpdateCargoMonitors(comp_id, old_mon, mon)
+{
+    foreach (cargo_id, old_rmon in old_mon) {
+        if (cargo_id in mon) {
+            this.UpdateResourceMonitors(comp_id, cargo_id, old_rmon, mon[cargo_id]);
+        } else {
+            this.UpdateResourceMonitors(comp_id, cargo_id, old_rmon, {});
+        }
+    }
+}
+
+function FMainClass::UpdateResourceMonitors(comp_id, cargo_id, old_rmon, rmon)
+{
+    if ("town" in old_rmon) {
+        if ("town" in rmon) {
+            this.UpdateTownMonitors(comp_id, cargo_id, old_rmon.town, rmon.town);
+        } else {
+            this.UpdateTownMonitors(comp_id, cargo_id, old_rmon.town, {});
+        }
+    }
+    if ("ind" in old_rmon) {
+        if ("ind" in rmon) {
+            this.UpdateIndMonitors(comp_id, cargo_id, old_rmon.ind, rmon.ind);
+        } else {
+            this.UpdateIndMonitors(comp_id, cargo_id, old_rmon.ind, {});
+        }
+    }
+}
+
+function FMainClass::UpdateTownMonitors(comp_id, cargo_id, old_tmon, tmon)
+{
+    foreach (town_id, _ in old_tmon) {
+        if (!(town_id in tmon)) {
+            GSCargoMonitor.GetTownDeliveryAmount(comp_id, cargo_id, town_id, false);
+            local text = "Stop monitoring town " + GSTown.GetName(town_id) +
+                         "for company " + comp_id + ", cargo " + GSCargo.GetCargoLabel(cargo_id);
+            GSLog.Info(text);
+        }
+    }
+}
+
+function FMainClass::UpdateIndMonitors(comp_id, cargo_id, old_imon, imon)
+{
+    foreach (ind_id, _ in old_imon) {
+        if (!(ind_id in imon)) {
+            GSCargoMonitor.GetIndustryDeliveryAmount(comp_id, cargo_id, ind_id, false);
+            local text = "Stop monitoring industry " + GSIndustry.GetName(ind_id) +
+                         "for company " + comp_id + ", cargo " + GSCargo.GetCargoLabel(cargo_id);
+            GSLog.Info(text);
+        }
     }
 }
