@@ -219,7 +219,8 @@ function FMainClass::Start()
 
     // Main event loop.
     local companies_timeout = 0;
-    local goal_timeout = 0;
+    local new_goal_timeout = 0;
+    local finished_timeout = 0;
     local monitor_timeout = 0;
     local old_cmonitor = null;
     while (true) {
@@ -244,7 +245,7 @@ function FMainClass::Start()
         }
 
         // Check for having to create new goals.
-        if (goal_timeout <= 0) {
+        if (new_goal_timeout <= 0) {
             local total_missing = 0; // Total number of missing goals.
             local best_cid = null;
             local cid_missing = 0;
@@ -265,9 +266,9 @@ function FMainClass::Start()
             }
 
             if (total_missing > 1) {
-                goal_timeout = 1 * 74; // If more missing goals, wait only a short while.
+                new_goal_timeout = 1 * 74; // If more missing goals, wait only a short while.
             } else {
-                goal_timeout = 30 * 74;
+                new_goal_timeout = 30 * 74;
             }
         }
 
@@ -287,9 +288,10 @@ function FMainClass::Start()
             this.FillMonitors(cmon); // Query the monitors.
 
             // Distribute the retrieved data.
+            local finished = false;
             foreach (cid, cdata in companies) {
                 if (cdata == null) continue;
-                cdata.UpdateDelivereds(cmon);
+                if (cdata.UpdateDelivereds(cmon)) finished = true;
             }
 
             // Drop obsolete monitors.
@@ -297,6 +299,17 @@ function FMainClass::Start()
             old_cmonitor = cmon;
 
             monitor_timeout = 15 * 74; // By default, check monitors every 15 days (other processes may force a check earlier).
+            if (finished) finished_timeout = 0;
+        }
+
+        // Check for finished goals, and remove them if they exist.
+        if (finished_timeout <= 0) {
+            foreach (cid, cdata in companies) {
+                if (cdata == null) continue;
+                cdata.CheckAndFinishGoals();
+            }
+
+            finished_timeout = 30 * 74; // By default, check for finished goals every 30 days (may be forced by other processes).
         }
 
 //        local lake_news = GSText(GSText.STR_LAKE_NEWS);
@@ -306,15 +319,19 @@ function FMainClass::Start()
         // Sleep until the next event.
         local delay_time = 5000;
         if (delay_time > companies_timeout) delay_time = companies_timeout;
-        if (delay_time > goal_timeout)      delay_time = goal_timeout;
+        if (delay_time > new_goal_timeout)  delay_time = new_goal_timeout;
         if (delay_time > monitor_timeout)   delay_time = monitor_timeout;
+        if (delay_time > finished_timeout)  delay_time = finished_timeout;
 
         // XXX Perhaps check for company events?
+        GSLog.Info("");
+        GSLog.Info("Sleeping for " + delay_time + " ticks.");
         if (delay_time > 0) this.Sleep(delay_time);
 
         companies_timeout -= delay_time;
-        goal_timeout      -= delay_time;
+        new_goal_timeout  -= delay_time;
         monitor_timeout   -= delay_time;
+        finished_timeout  -= delay_time;
     }
 }
 

@@ -15,6 +15,8 @@ class CompanyGoal {
 
     function AddMonitorElement(mon);
     function UpdateDelivered(mon);
+    function CheckFinished();
+    function FinalizeGoal();
 };
 
 // Add an entry to the collection of monitored things.
@@ -45,6 +47,19 @@ function CompanyGoal::UpdateDelivered(mon)
     this.delivered_amount += delivered;
 }
 
+// Test whether the goal can be considered 'done'.
+// @return Whether the goal is considered done.
+function CompanyGoal::CheckFinished()
+{
+    return this.delivered_amount >= this.wanted_amount;
+}
+
+// Goal is considered 'done', last chance to clean up before the goal is dropped
+// (to make room for a new goal).
+function CompanyGoal::FinalizeGoal()
+{
+    // Nothing to do (yet).
+}
 
 class CompanyData {
     comp_id = null;
@@ -63,6 +78,7 @@ class CompanyData {
 
     function AddMonitorElement(mon);
     function UpdateDelivered(mon);
+    function CheckAndFinishGoals();
 };
 
 // Find the number of active goals that are missing for this company.
@@ -128,12 +144,28 @@ function CompanyData::AddMonitorElements(cmon)
 // Distribute the delivered amounts to the goals.
 // @param cmon Monitor results of all companies, 'comp_id' numbers to 'cargo_id' number to
 //          'ind' and/or 'town' to resource indices to amount.
+// @return Whether a goal is considered to be 'done'.
 function CompanyData::UpdateDelivereds(cmon)
 {
+    local finished = false;
     if (this.comp_id in cmon) {
         foreach (num, goal in this.active_goals) {
             if (goal == null) continue;
             goal.UpdateDelivered(cmon[this.comp_id]);
+            if (goal.CheckFinished()) finished = true;
+        }
+    }
+    return finished; // One or more goals was considered 'done'
+}
+
+// Test whether goals of the company are 'done', and if so, drop them.
+function CompanyData::CheckAndFinishGoals()
+{
+    foreach (num, goal in this.active_goals) {
+        if (goal == null) continue;
+        if (goal.CheckFinished()) {
+            goal.FinalizeGoal();
+            this.active_goals[num] = null;
         }
     }
 }
