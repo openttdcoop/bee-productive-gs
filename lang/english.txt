@@ -1,4 +1,5 @@
 STR_LAKE_NEWS       :There are {NUM} {}fish here
 STR_COMPANY_GOAL    :Deliver {CARGO_LONG} to {STRING}
+STR_PROGRESS        :{NUM}% done
 STR_TOWN_NAME       :{TOWN}
 STR_INDUSTRY_NAME   :{INDUSTRY}

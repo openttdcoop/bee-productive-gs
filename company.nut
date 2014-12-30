@@ -59,7 +59,21 @@ function CompanyGoal::UpdateDelivered(mon)
         delivered = mon[this.cargo_id].town[this.accept.town];
     }
 
-    this.delivered_amount += delivered;
+    if (delivered > 0) {
+        this.delivered_amount += delivered;
+        if (this.goal_id != null) {
+            local perc;
+            if (this.delivered_amount >= this.wanted_amount) {
+                perc = 100;
+                GSGoal.SetCompleted(this.goal_id, true);
+            } else {
+                perc = 100 * this.delivered_amount / this.wanted_amount;
+                if (perc > 100) perc = 100;
+            }
+            local progress_text = GSText(GSText.STR_PROGRESS, perc);
+            GSGoal.SetProgress(this.goal_id, progress_text);
+        }
+    }
 }
 
 // Test whether the goal can be considered 'done'.
