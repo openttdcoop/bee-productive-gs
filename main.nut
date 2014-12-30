@@ -259,8 +259,8 @@ function BusyBeeClass::Start()
                 monitor_timeout = 0; // Force updating of the monitor.
             }
 
-            if (total_missing > 1) {
-                new_goal_timeout = 1 * 74; // If more missing goals, wait only a short while.
+            if (best_cid != null && total_missing > 1) {
+                new_goal_timeout = 1 * 74; // More missing goals and we can find new ones, wait only a short while.
             } else {
                 new_goal_timeout = 30 * 74;
             }
