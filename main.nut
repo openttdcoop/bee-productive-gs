@@ -325,6 +325,14 @@ function BusyBeeClass::Start()
         new_goal_timeout  -= delay_time;
         monitor_timeout   -= delay_time;
         finished_timeout  -= delay_time;
+
+        // Update timeout of the goals as well.
+        if (!GSGame.IsPaused()) {
+            foreach (cid, cdata in companies) {
+                if (cdata == null) continue;
+                cdata.UpdateTimeout(delay_time);
+            }
+        }
     }
 }
 

@@ -6,12 +6,14 @@ class CompanyGoal {
     accept = null;        // Accepting resource.
     wanted_amount = null; // Amount to deliver for achieving the goal.
     delivered_amount = 0; // Amount delivered so far.
-    goal_id = null;
+    goal_id = null;       // Number of the goal in OpenTTD goal window.
+    timeout = null;       // Timeout in ticks before the goal becomes obsolete.
 
     constructor(comp_id, cargo_id, accept, wanted_amount) {
         this.cargo_id = cargo_id;
         this.accept = accept;
         this.wanted_amount = wanted_amount;
+        this.timeout = 60 * 30 * 74; // 60 months timeout (30 days, 74 ticks).
 
         // Construct goal.
         local destination, destination_string, goal_type;
@@ -30,6 +32,7 @@ class CompanyGoal {
 
     function AddMonitorElement(mon);
     function UpdateDelivered(mon);
+    function UpdateTimeout(step);
     function CheckFinished();
     function FinalizeGoal();
 };
@@ -76,11 +79,25 @@ function CompanyGoal::UpdateDelivered(mon)
     }
 }
 
-// Test whether the goal can be considered 'done'.
+// Update the timeout of the goal
+// @param step Number of passed ticks.
+function CompanyGoal::UpdateTimeout(step)
+{
+    this.timeout -= step;
+    if (this.goal_id != null) {
+        local remaining = this.timeout;
+        if (remaining < 0) remaining = 0;
+        if (this.delivered_amount > 0) return; // Don't print remaining ticks when there is cargo delivered.
+        local progress_text = GSText(GSText.STR_TIMEOUT, remaining);
+        GSGoal.SetProgress(this.goal_id, progress_text);
+    }
+}
+
+// Test whether the goal can be considered 'done' (or obsolete).
 // @return Whether the goal is considered done.
 function CompanyGoal::CheckFinished()
 {
-    return this.delivered_amount >= this.wanted_amount;
+    return this.timeout < 0 || this.delivered_amount >= this.wanted_amount;
 }
 
 // Goal is considered 'done', last chance to clean up before the goal is dropped
@@ -108,6 +125,7 @@ class CompanyData {
 
     function AddMonitorElement(mon);
     function UpdateDelivered(mon);
+    function UpdateTimeout(step);
     function CheckAndFinishGoals();
 };
 
@@ -199,6 +217,14 @@ function CompanyData::UpdateDelivereds(cmon)
         }
     }
     return finished; // One or more goals was considered 'done'
+}
+
+function CompanyData::UpdateTimeout(step)
+{
+    foreach (num, goal in this.active_goals) {
+        if (goal == null) continue;
+        goal.UpdateTimeout(step);
+    }
 }
 
 // Test whether goals of the company are 'done', and if so, drop them.
