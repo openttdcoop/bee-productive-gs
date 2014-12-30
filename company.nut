@@ -104,6 +104,7 @@ class CompanyData {
     function GetMissingGoalCount();
     function AddActiveGoal(cargo_id, accept, amount);
     function HasGoal(cargo_id, accept);
+    function GetNumberOfGoalsForCargo(cargo_id);
 
     function AddMonitorElement(mon);
     function UpdateDelivered(mon);
@@ -152,6 +153,19 @@ function CompanyData::HasGoal(cargo_id, accept)
         return true;
     }
     return false;
+}
+
+// Count the number of goals that ask for the given cargo type.
+// @param cargo_id Cargo to check for.
+// @return Number of active goals with the given cargo type.
+function CompanyData::GetNumberOfGoalsForCargo(cargo_id)
+{
+    local count = 0;
+    foreach (num, goal in this.active_goals) {
+        if (goal == null) continue;
+        if (goal.cargo_id == cargo_id) count += 1;
+    }
+    return count;
 }
 
 // Add monitor elements of a company, if they exist.

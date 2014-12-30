@@ -165,13 +165,13 @@ function BusyBeeClass::FindChallenge(cargo_id, distance, cid)
 // Try to add a goal for a company.
 function BusyBeeClass::CreateChallenge(cid)
 {
-    local attempt = 0;
-    while (attempt < 20) {
+    local cdata = this.companies[cid];
+    for (local attempt = 0;attempt < 20; attempt += 1) {
         local cargo = GSBase.RandRange(this.num_cargoes);
+        if (cdata.GetNumberOfGoalsForCargo(cargo) > 1) continue; // Already 2 goals for this cargo.
         local distance = GSBase.RandRange(200) + 50; // Distance 50 .. 250 tiles.
         local accept = FindChallenge(cargo, distance, cid);
         if (accept != null) {
-            local cdata = this.companies[cid];
             local amount = GSBase.RandRange(100) + 1;
             if (amount < 10) {
                 amount = amount * 25; // 25 .. 225
@@ -195,7 +195,6 @@ function BusyBeeClass::CreateChallenge(cid)
                 break;
             }
         }
-        attempt += 1;
     }
 }
 
