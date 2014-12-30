@@ -169,26 +169,15 @@ function FMainClass::CreateChallenge(cid)
             if (cdata != null) {
                 cdata.AddActiveGoal(cargo, accept, amount);
 
-                local destination, destination_name, destination_string, goal_type;
+                local destination_name;
                 if ("town" in accept) {
-                    destination = accept.town;
-                    destination_name = GSTown.GetName(destination);
-                    destination_string = GSText(GSText.STR_TOWN_NAME, destination);
-                    goal_type = GSGoal.GT_TOWN;
+                    destination_name = GSTown.GetName(accept.town);
                 } else {
-                    destination = accept.ind;
-                    destination_name = GSIndustry.GetName(destination);
-                    destination_string = GSText(GSText.STR_INDUSTRY_NAME, destination);
-                    goal_type = GSGoal.GT_INDUSTRY;
+                    destination_name = GSIndustry.GetName(accept.ind);
                 }
                 GSLog.Info("Company " + cid + ": " + amount + " of " +
                            GSCargo.GetCargoLabel(this.cargoes[cargo].cid) +
                            " to " + destination_name);
-                local goal_text = GSText(GSText.STR_COMPANY_GOAL, cargo, amount, destination_string);
-                local goal_uid = GSGoal.New(cid, goal_text, goal_type, destination);
-                // ¿ we're probably going to want to store the GoalID in the company goal data ?
-                // for now, just log it
-                GSLog.Info("Goal ID: " + goal_uid)
                 break;
             }
         }
@@ -201,15 +190,6 @@ function FMainClass::Start()
     this.Sleep(1); // Wait for the game to start.
 
     this.ExamineCargoes();
-
-//    local accept = FindChallenge(0, 50, GSCompany.COMPANY_FIRST); // Mail challenge
-//    if (accept != null) {
-//        if ("town" in accept) {
-//            GSLog.Info("Use town " + GSTown.GetName(accept.town));
-//        } else {
-//            GSLog.Info("Use industry " + GSIndustry.GetName(accept.ind));
-//        }
-//    }
 
     // Construct empty companies.
     this.companies = {};
@@ -325,7 +305,7 @@ function FMainClass::Start()
 
         // XXX Perhaps check for company events?
         GSLog.Info("");
-        GSLog.Info("Sleeping for " + delay_time + " ticks.");
+//       GSLog.Info("Sleeping for " + delay_time + " ticks.");
         if (delay_time > 0) this.Sleep(delay_time);
 
         companies_timeout -= delay_time;
@@ -346,20 +326,20 @@ function FMainClass::FillMonitors(cmon)
                 foreach (ind_id, _ in rmon.ind) {
                     local amount = GSCargoMonitor.GetIndustryDeliveryAmount(comp_id, cargo_id, ind_id, true);
                     rmon.ind[ind_id] = amount;
-                    local text = "Industry " + GSIndustry.GetName(ind_id) + " received " + amount +
-                                 " units for company " + comp_id +
-                                 ", cargo " + GSCargo.GetCargoLabel(cargo_id);
-                    GSLog.Info(text);
+//                    local text = "Industry " + GSIndustry.GetName(ind_id) + " received " + amount +
+//                                " units for company " + comp_id +
+//                                ", cargo " + GSCargo.GetCargoLabel(cargo_id);
+//                   GSLog.Info(text);
                 }
             }
             if ("town" in rmon) {
                 foreach (town_id, _ in rmon.town) {
                     local amount = GSCargoMonitor.GetTownDeliveryAmount(comp_id, cargo_id, town_id, true);
                     rmon.town[town_id] = amount;
-                    local text = "Town " + GSTown.GetName(town_id) + " received " + amount +
-                                 " units for company " + comp_id +
-                                 ", cargo " + GSCargo.GetCargoLabel(cargo_id);
-                    GSLog.Info(text);
+//                   local text = "Town " + GSTown.GetName(town_id) + " received " + amount +
+//                                " units for company " + comp_id +
+//                                ", cargo " + GSCargo.GetCargoLabel(cargo_id);
+//                   GSLog.Info(text);
                 }
             }
         }

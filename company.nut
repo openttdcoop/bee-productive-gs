@@ -6,11 +6,26 @@ class CompanyGoal {
     accept = null;        // Accepting resource.
     wanted_amount = null; // Amount to deliver for achieving the goal.
     delivered_amount = 0; // Amount delivered so far.
+    goal_id = null;
 
-    constructor(cargo_id, accept, wanted_amount) {
+    constructor(comp_id, cargo_id, accept, wanted_amount) {
         this.cargo_id = cargo_id;
         this.accept = accept;
         this.wanted_amount = wanted_amount;
+
+        // Construct goal.
+        local destination, destination_string, goal_type;
+        if ("town" in this.accept) {
+            destination = accept.town;
+            destination_string = GSText(GSText.STR_TOWN_NAME, destination);
+            goal_type = GSGoal.GT_TOWN;
+        } else {
+            destination = accept.ind;
+            destination_string = GSText(GSText.STR_INDUSTRY_NAME, destination);
+            goal_type = GSGoal.GT_INDUSTRY;
+        }
+        local goal_text = GSText(GSText.STR_COMPANY_GOAL, this.cargo_id, this.wanted_amount, destination_string);
+        this.goal_id = GSGoal.New(comp_id, goal_text, goal_type, destination);
     }
 
     function AddMonitorElement(mon);
@@ -58,7 +73,7 @@ function CompanyGoal::CheckFinished()
 // (to make room for a new goal).
 function CompanyGoal::FinalizeGoal()
 {
-    // Nothing to do (yet).
+    if (this.goal_id != null) GSGoal.Remove(this.goal_id);
 }
 
 class CompanyData {
@@ -100,7 +115,7 @@ function CompanyData::AddActiveGoal(cargo_id, accept, amount)
 {
     foreach (num, goal in this.active_goals) {
         if (goal == null) {
-            this.active_goals[num] = CompanyGoal(cargo_id, accept, amount);
+            this.active_goals[num] = CompanyGoal(this.comp_id, cargo_id, accept, amount);
             break;
         }
     }
