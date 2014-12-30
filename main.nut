@@ -61,6 +61,17 @@ function BusyBeeClass::FindSources(cargo_id)
             num_sources += 1;
         }
     }
+// Dump sources for a cargo.
+//    GSLog.Info("Sources for " + GSCargo.GetCargoLabel(cargo.cid));
+//    foreach (_, src in sources) {
+//        if ("ind" in src) {
+//            GSLog.Info("Industry " + GSIndustry.GetName(src.ind) + " produces " + src.prod);
+//        } else {
+//            GSLog.Info("Town " + GSTown.GetName(src.town) + " produces " + src.prod);
+//        }
+//    }
+//    GSLog.Info("");
+
     return sources;
 }
 
@@ -120,7 +131,10 @@ function BusyBeeClass::GetDistanceScore(desired, actual)
 function BusyBeeClass::FindChallenge(cargo_id, distance, cid)
 {
     local prods = this.FindSources(cargo_id);
+    if (prods.len() == 0) return null;
     local accepts = this.FindDestinations(cargo_id, cid);
+    if (accepts.len() == 0) return null;
+
     local cdata = this.companies[cid];
 
     local best_score = 0; // Best overall distance.
@@ -129,7 +143,7 @@ function BusyBeeClass::FindChallenge(cargo_id, distance, cid)
         if (cdata != null && cdata.HasGoal(cargo_id, accept)) continue; // Prevent duplicates.
 
         local min_prod_distance = distance * 2; // Smallest found distance to the accepting industry.
-        local prod_score = GetDistanceScore(distance, min_prod_distance);
+        local prod_score = best_score;
         foreach (_, prod in prods) {
             local actual_dist = GSTile.GetDistanceManhattanToTile(accept.loc, prod.loc);
             if (actual_dist > distance * 2) continue; // Too far away, skip.
@@ -326,6 +340,7 @@ function BusyBeeClass::FillMonitors(cmon)
                 foreach (ind_id, _ in rmon.ind) {
                     local amount = GSCargoMonitor.GetIndustryDeliveryAmount(comp_id, cargo_id, ind_id, true);
                     rmon.ind[ind_id] = amount;
+// Dump received amount of cargo of an industry.
 //                    local text = "Industry " + GSIndustry.GetName(ind_id) + " received " + amount +
 //                                " units for company " + comp_id +
 //                                ", cargo " + GSCargo.GetCargoLabel(cargo_id);
@@ -336,6 +351,7 @@ function BusyBeeClass::FillMonitors(cmon)
                 foreach (town_id, _ in rmon.town) {
                     local amount = GSCargoMonitor.GetTownDeliveryAmount(comp_id, cargo_id, town_id, true);
                     rmon.town[town_id] = amount;
+// Dump received amount of cargo of a town.
 //                   local text = "Town " + GSTown.GetName(town_id) + " received " + amount +
 //                                " units for company " + comp_id +
 //                                ", cargo " + GSCargo.GetCargoLabel(cargo_id);
@@ -392,7 +408,7 @@ function BusyBeeClass::UpdateTownMonitors(comp_id, cargo_id, old_tmon, tmon)
         if (!(town_id in tmon)) {
             GSCargoMonitor.GetTownDeliveryAmount(comp_id, cargo_id, town_id, false);
             local text = "Stop monitoring town " + GSTown.GetName(town_id) +
-                         "for company " + comp_id + ", cargo " + GSCargo.GetCargoLabel(cargo_id);
+                         " for company " + comp_id + ", cargo " + GSCargo.GetCargoLabel(cargo_id);
             GSLog.Info(text);
         }
     }
@@ -404,7 +420,7 @@ function BusyBeeClass::UpdateIndMonitors(comp_id, cargo_id, old_imon, imon)
         if (!(ind_id in imon)) {
             GSCargoMonitor.GetIndustryDeliveryAmount(comp_id, cargo_id, ind_id, false);
             local text = "Stop monitoring industry " + GSIndustry.GetName(ind_id) +
-                         "for company " + comp_id + ", cargo " + GSCargo.GetCargoLabel(cargo_id);
+                         " for company " + comp_id + ", cargo " + GSCargo.GetCargoLabel(cargo_id);
             GSLog.Info(text);
         }
     }
