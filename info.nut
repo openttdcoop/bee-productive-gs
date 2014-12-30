@@ -17,16 +17,16 @@
  * Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-class FMainClass extends GSInfo {
+class BusyBeeClass extends GSInfo {
     function GetAuthor()        { return "alberth & andythenorth"; }
     function GetName()          { return "BusyBee"; }
     function GetDescription()   { return "Goal: Have fun"; }
     function GetVersion()       { return 0; }
     function GetDate()          { return "2014-12-27"; }
-    function CreateInstance()   { return "FMainClass"; }
+    function CreateInstance()   { return "BusyBeeClass"; }
     function GetShortName()     { return "BBEE"; }
     function GetAPIVersion()    { return "1.5"; }
     function GetUrl()           { return ""; }
 }
 
-RegisterGS(FMainClass());
+RegisterGS(BusyBeeClass());

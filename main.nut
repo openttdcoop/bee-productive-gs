@@ -1,7 +1,7 @@
 
 require("company.nut");
 
-class FMainClass extends GSController
+class BusyBeeClass extends GSController
 {
     cargoes = null; // Cargoes of the game (index -> 'cid' number, 'freight' boolean, 'effect' on town).
     num_cargoes = 0;
@@ -12,7 +12,7 @@ class FMainClass extends GSController
 }
 
 // Examine and store cargo types of the game.
-function FMainClass::ExamineCargoes()
+function BusyBeeClass::ExamineCargoes()
 {
     this.cargoes = {};
     this.num_cargoes = 0;
@@ -31,7 +31,7 @@ function FMainClass::ExamineCargoes()
 // @param cargo_id Cargo index (index in this.cargoes).
 // @return List of resources that produce the requested cargo, list of
 //      'ind' or 'town' number, 'prod' produced amount, 'transp' transported amount, and 'loc' location.
-function FMainClass::FindSources(cargo_id)
+function BusyBeeClass::FindSources(cargo_id)
 {
     local cargo = this.cargoes[cargo_id];
     local num_sources = 0;
@@ -68,7 +68,7 @@ function FMainClass::FindSources(cargo_id)
 // @param cargo_id Cargo index (index in this.cargoes).
 // @param company Company to inspect.
 // @return A list of destinations, tables 'ind' or 'town' id, and a 'loc' location.
-function FMainClass::FindDestinations(cargo_id, company)
+function BusyBeeClass::FindDestinations(cargo_id, company)
 {
     local cargo = this.cargoes[cargo_id];
     local num_dests = 0;
@@ -106,18 +106,18 @@ function FMainClass::FindDestinations(cargo_id, company)
 // @param desired Desired distance.
 // @param actual Actual distance.
 // @return Score for the distance.
-function FMainClass::GetDistanceScore(desired, actual)
+function BusyBeeClass::GetDistanceScore(desired, actual)
 {
     if (actual < desired) return 1000 - 3 * (desired - actual); // Too close gets punished hard.
     return 1000 - (actual - desired);
 }
 
 // Try to find a challenge for a given cargo and a desired distance.
-// @param cargo Cargo entry from FMainClass.cargoes (table with 'cid', 'freight', 'effect').
+// @param cargo Cargo entry from BusyBeeClass.cargoes (table with 'cid', 'freight', 'effect').
 // @param distance Desired distance between source and target.
 // @param cid Company to find a challenge for.
 // @return Best accepting industry to use, or 'null' if no industry-pair found.
-function FMainClass::FindChallenge(cargo_id, distance, cid)
+function BusyBeeClass::FindChallenge(cargo_id, distance, cid)
 {
     local prods = this.FindSources(cargo_id);
     local accepts = this.FindDestinations(cargo_id, cid);
@@ -149,7 +149,7 @@ function FMainClass::FindChallenge(cargo_id, distance, cid)
 }
 
 // Try to add a goal for a company.
-function FMainClass::CreateChallenge(cid)
+function BusyBeeClass::CreateChallenge(cid)
 {
     local attempt = 0;
     while (attempt < 20) {
@@ -185,7 +185,7 @@ function FMainClass::CreateChallenge(cid)
     }
 }
 
-function FMainClass::Start()
+function BusyBeeClass::Start()
 {
     this.Sleep(1); // Wait for the game to start.
 
@@ -304,8 +304,8 @@ function FMainClass::Start()
         if (delay_time > finished_timeout)  delay_time = finished_timeout;
 
         // XXX Perhaps check for company events?
-        GSLog.Info("");
-//       GSLog.Info("Sleeping for " + delay_time + " ticks.");
+//        GSLog.Info("");
+//        GSLog.Info("Sleeping for " + delay_time + " ticks.");
         if (delay_time > 0) this.Sleep(delay_time);
 
         companies_timeout -= delay_time;
@@ -318,7 +318,7 @@ function FMainClass::Start()
 // Fill company monitors with monitored amounts.
 // @param [inout] cmon Table of 'comp_id' number to 'cargo_id' number to
 //      'ind' and/or 'town' to resource indices to 'null'.
-function FMainClass::FillMonitors(cmon)
+function BusyBeeClass::FillMonitors(cmon)
 {
     foreach (comp_id, mon in cmon) {
         foreach (cargo_id, rmon in mon) {
@@ -346,7 +346,7 @@ function FMainClass::FillMonitors(cmon)
     }
 }
 
-function FMainClass::UpdateCompanyMonitors(old_cmon, cmon)
+function BusyBeeClass::UpdateCompanyMonitors(old_cmon, cmon)
 {
     foreach (comp_id, old_mon in old_cmon) {
         if (comp_id in cmon) {
@@ -357,7 +357,7 @@ function FMainClass::UpdateCompanyMonitors(old_cmon, cmon)
     }
 }
 
-function FMainClass::UpdateCargoMonitors(comp_id, old_mon, mon)
+function BusyBeeClass::UpdateCargoMonitors(comp_id, old_mon, mon)
 {
     foreach (cargo_id, old_rmon in old_mon) {
         if (cargo_id in mon) {
@@ -368,7 +368,7 @@ function FMainClass::UpdateCargoMonitors(comp_id, old_mon, mon)
     }
 }
 
-function FMainClass::UpdateResourceMonitors(comp_id, cargo_id, old_rmon, rmon)
+function BusyBeeClass::UpdateResourceMonitors(comp_id, cargo_id, old_rmon, rmon)
 {
     if ("town" in old_rmon) {
         if ("town" in rmon) {
@@ -386,7 +386,7 @@ function FMainClass::UpdateResourceMonitors(comp_id, cargo_id, old_rmon, rmon)
     }
 }
 
-function FMainClass::UpdateTownMonitors(comp_id, cargo_id, old_tmon, tmon)
+function BusyBeeClass::UpdateTownMonitors(comp_id, cargo_id, old_tmon, tmon)
 {
     foreach (town_id, _ in old_tmon) {
         if (!(town_id in tmon)) {
@@ -398,7 +398,7 @@ function FMainClass::UpdateTownMonitors(comp_id, cargo_id, old_tmon, tmon)
     }
 }
 
-function FMainClass::UpdateIndMonitors(comp_id, cargo_id, old_imon, imon)
+function BusyBeeClass::UpdateIndMonitors(comp_id, cargo_id, old_imon, imon)
 {
     foreach (ind_id, _ in old_imon) {
         if (!(ind_id in imon)) {
