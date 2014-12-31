@@ -231,6 +231,7 @@ function BusyBeeClass::Start()
                     if (this.companies[cid] == null) {
                         this.companies[cid] = CompanyData(cid);
                         GSLog.Info("Created company " + cid);
+                        new_goal_timeout = 0; // Force creating of new goals.
                     }
                 }
             }

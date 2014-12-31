@@ -110,9 +110,10 @@ function CompanyGoal::FinalizeGoal()
 class CompanyData {
     comp_id = null;
 
-    active_goals = {};
+    active_goals = null;
 
     constructor(comp_id) {
+        this.active_goals = {};
         this.comp_id = comp_id;
 
         for (local num = 0; num < 5; num += 1) this.active_goals[num] <- null;
