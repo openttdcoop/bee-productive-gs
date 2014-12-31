@@ -198,6 +198,108 @@ function BusyBeeClass::CreateChallenge(cid)
     }
 }
 
+// Process events that arrived.
+// @return Table with 'force_goal' bool to force goal updating.
+function BusyBeeClass::ProcessEvents()
+{
+    local force_goal = false;
+    while (GSEventController.IsEventWaiting()) {
+        local event = GSEventController.GetNextEvent();
+        local event_type = event.GetEventType();
+
+        if (event_type == GSEvent.ET_COMPANY_NEW) {
+            local comp_id = GSEventCompanyNew.Convert(event).GetCompanyID();
+            if (this.companies[comp_id] == null) {
+                this.companies[comp_id] = CompanyData(comp_id);
+                GSLog.Info("Created company " + comp_id + " (newly started).");
+                force_goal = true;
+            }
+
+        } else if (event_type == GSEvent.ET_COMPANY_MERGER) {
+            local comp_id = GSEventCompanyMerger.Convert(event).GetOldCompanyID();
+            if (this.companies[comp_id] != null) {
+                this.companies[comp_id].FinalizeCompany();
+                this.companies[comp_id] = null;
+                GSLog.Info("Deleted company " + comp_id + " (due to merging).");
+            }
+        } else if (event_type == GSEvent.ET_COMPANY_BANKRUPT) {
+            local comp_id = GSEventCompanyBankrupt.Convert(event).GetCompanyID();
+            if (this.companies[comp_id] != null) {
+                this.companies[comp_id].FinalizeCompany();
+                this.companies[comp_id] = null;
+                GSLog.Info("Deleted company " + comp_id + " (no monies anymore).");
+            }
+
+        } else if (event_type == GSEvent.ET_INDUSTRY_CLOSE) {
+            local ind_id = GSEventIndustryClose.Convert(event).GetIndustryID();
+            foreach (comp_id, cdata in companies) {
+                if (cdata != null) cdata.IndustryClosed(ind_id);
+            }
+        }
+    }
+    return {force_goal=force_goal};
+}
+
+// Check if new goals should be created.
+// @return Table with 'more_goals_needed' boolean, and 'force_monitor' to force updating.
+function BusyBeeClass::TryAddNewGoal()
+{
+    local force_monitor=false;
+
+    local total_missing = 0; // Total number of missing goals.
+    local best_comp_id = null;
+    local comp_id_missing = 0;
+    foreach (comp_id, cdata in companies) {
+        if (cdata == null) continue;
+        local missing = cdata.GetMissingGoalCount();
+        total_missing += missing;
+
+        // Find company with most missing goals.
+        if (missing > comp_id_missing) {
+            best_comp_id = comp_id;
+            comp_id_missing = missing;
+        }
+    }
+    if (best_comp_id != null) {
+        this.CreateChallenge(best_comp_id);
+        force_monitor = true; // Force updating of the monitor to get the monitoring switched on.
+    }
+
+    return {force_monitor=force_monitor, more_goals_needed=(best_comp_id != null && total_missing > 1)};
+}
+
+// Update progress on existing monitored goals, add monitoring for new goals, and drop monitors for removed goals.
+// @param old_cmon Monitored deliveries (or 'null' if first call).
+// @return Table 'cmon' with the new monitored deliveries, 'finished_goals' boolean when there exist goals that are completed.
+function BusyBeeClass::UpdateDeliveries(old_cmon)
+{
+    if (old_cmon == null) { // First run, clear any old monitoring.
+        GSCargoMonitor.StopAllMonitoring();
+        old_cmon = {};
+    }
+
+    local cmon = {};
+    // Collect monitors that are of interest.
+    foreach (comp_id, cdata in companies) {
+        if (cdata == null) continue;
+        cdata.AddMonitorElements(cmon);
+    }
+
+    this.FillMonitors(cmon); // Query the monitors for new deliveries.
+
+    // Distribute the retrieved data.
+    local finished = false;
+    foreach (comp_id, cdata in companies) {
+        if (cdata == null) continue;
+        if (cdata.UpdateDelivereds(cmon)) finished = true;
+    }
+
+    // Drop obsolete monitors.
+    this.UpdateCompanyMonitors(old_cmon, cmon);
+
+    return {cmon=cmon, finished_goals=finished};
+}
+
 function BusyBeeClass::Start()
 {
     this.Sleep(1); // Wait for the game to start.
@@ -211,56 +313,21 @@ function BusyBeeClass::Start()
     }
 
     // Main event loop.
-    local companies_timeout = 0;
     local new_goal_timeout = 0;
     local finished_timeout = 0;
     local monitor_timeout = 0;
-    local old_cmonitor = null;
+    local cmonitor = null;
     while (true) {
-        // Check for new or disappeared companies.
-        if (companies_timeout <= 0) {
-            for (local cid = GSCompany.COMPANY_FIRST; cid <= GSCompany.COMPANY_LAST; cid++) {
-                if (GSCompany.ResolveCompanyID(cid) == GSCompany.COMPANY_INVALID) {
-                    if (this.companies[cid] != null) {
-                        // XXX Handle company disappearing
-                        monitor_timeout = 0; // Force updating of the goals.
-                        GSLog.Info("Deleted company " + cid);
-                    }
-                    this.companies[cid] = null;
-                } else {
-                    if (this.companies[cid] == null) {
-                        this.companies[cid] = CompanyData(cid);
-                        GSLog.Info("Created company " + cid);
-                        new_goal_timeout = 0; // Force creating of new goals.
-                    }
-                }
-            }
-            companies_timeout = 50 * 74; // 50 days until the next companies check.
-        }
+        local result = this.ProcessEvents();
+        if (result.force_goal) new_goal_timeout = 0;
 
         // Check for having to create new goals.
         if (new_goal_timeout <= 0) {
-            local total_missing = 0; // Total number of missing goals.
-            local best_cid = null;
-            local cid_missing = 0;
-            foreach (cid, cdata in companies) {
-                if (cdata == null) continue;
-                local missing = cdata.GetMissingGoalCount();
-                total_missing += missing;
+            local result = this.TryAddNewGoal();
+            if (result.force_monitor) monitor_timeout = 0;
 
-                // Find company with most missing goals.
-                if (missing > cid_missing) {
-                    best_cid = cid;
-                    cid_missing = missing;
-                }
-            }
-            if (best_cid != null) {
-                this.CreateChallenge(best_cid);
-                monitor_timeout = 0; // Force updating of the monitor.
-            }
-
-            if (best_cid != null && total_missing > 1) {
-                new_goal_timeout = 1 * 74; // More missing goals and we can find new ones, wait only a short while.
+            if (result.more_goals_needed) {
+                new_goal_timeout = 1 * 74;
             } else {
                 new_goal_timeout = 30 * 74;
             }
@@ -268,32 +335,11 @@ function BusyBeeClass::Start()
 
         // Monitoring and updating of company goals. Note that code above may force an update.
         if (monitor_timeout <= 0) {
-            local cmon = {};
-            // Collect monitors that are of interest.
-            foreach (cid, cdata in companies) {
-                if (cdata == null) continue;
-                cdata.AddMonitorElements(cmon);
-            }
-
-            if (old_cmonitor == null) { // First run, clear any old monitoring.
-                GSCargoMonitor.StopAllMonitoring();
-                old_cmonitor = {};
-            }
-            this.FillMonitors(cmon); // Query the monitors.
-
-            // Distribute the retrieved data.
-            local finished = false;
-            foreach (cid, cdata in companies) {
-                if (cdata == null) continue;
-                if (cdata.UpdateDelivereds(cmon)) finished = true;
-            }
-
-            // Drop obsolete monitors.
-            this.UpdateCompanyMonitors(old_cmonitor, cmon);
-            old_cmonitor = cmon;
+            local result = this.UpdateDeliveries(cmonitor);
+            cmonitor = result.cmon;
+            if (result.finished_goals) finished_timeout = 0;
 
             monitor_timeout = 15 * 74; // By default, check monitors every 15 days (other processes may force a check earlier).
-            if (finished) finished_timeout = 0;
         }
 
         // Check for finished goals, and remove them if they exist.
@@ -311,25 +357,20 @@ function BusyBeeClass::Start()
 //        GSGoal.Question(1, GSCompany.COMPANY_INVALID, lake_news, GSGoal.QT_INFORMATION, GSGoal.BUTTON_GO);
 
         // Sleep until the next event.
-        local delay_time = 5000;
-        if (delay_time > companies_timeout) delay_time = companies_timeout;
+        local delay_time = 5 * 74; // Check events every 2 days.
         if (delay_time > new_goal_timeout)  delay_time = new_goal_timeout;
         if (delay_time > monitor_timeout)   delay_time = monitor_timeout;
         if (delay_time > finished_timeout)  delay_time = finished_timeout;
 
-        // XXX Perhaps check for company events?
-//        GSLog.Info("");
-//        GSLog.Info("Sleeping for " + delay_time + " ticks.");
         if (delay_time > 0) this.Sleep(delay_time);
 
-        companies_timeout -= delay_time;
         new_goal_timeout  -= delay_time;
         monitor_timeout   -= delay_time;
         finished_timeout  -= delay_time;
 
         // Update timeout of the goals as well.
         if (!GSGame.IsPaused()) {
-            foreach (cid, cdata in companies) {
+            foreach (comp_id, cdata in companies) {
                 if (cdata == null) continue;
                 cdata.UpdateTimeout(delay_time);
             }

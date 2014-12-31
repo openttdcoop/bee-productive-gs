@@ -123,12 +123,27 @@ class CompanyData {
     function AddActiveGoal(cargo_id, accept, amount);
     function HasGoal(cargo_id, accept);
     function GetNumberOfGoalsForCargo(cargo_id);
+    function IndustryClosed(ind_id);
 
     function AddMonitorElement(mon);
     function UpdateDelivered(mon);
     function UpdateTimeout(step);
     function CheckAndFinishGoals();
+
+    function FinalizeCompany();
 };
+
+// Company is about to be deleted, last chance to clean up.
+function CompanyData::FinalizeCompany()
+{
+    foreach (num, goal in this.active_goals) {
+        if (goal != null) {
+            goal.FinalizeGoal();
+            this.active_goals[num] = null;
+        }
+    }
+}
+
 
 // Find the number of active goals that are missing for this company.
 // @return Number of additional goals that the company needs.
@@ -185,6 +200,19 @@ function CompanyData::GetNumberOfGoalsForCargo(cargo_id)
         if (goal.cargo_id == cargo_id) count += 1;
     }
     return count;
+}
+
+// The given industry closed, delete any goal with it.
+// @param ind_id Industry that closed.
+function CompanyData::IndustryClosed(ind_id)
+{
+    foreach (num, goal in this.active_goals) {
+        if (goal == null) continue;
+        if ("ind" in goal.accept && goal.accept.ind == ind_id) {
+            goal.FinalizeGoal();
+            this.active_goals[num] = null;
+        }
+    }
 }
 
 // Add monitor elements of a company, if they exist.
