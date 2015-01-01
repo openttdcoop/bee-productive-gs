@@ -9,11 +9,14 @@ class CompanyGoal {
     goal_id = null;       // Number of the goal in OpenTTD goal window.
     timeout = null;       // Timeout in ticks before the goal becomes obsolete.
 
+    displayed_string = null;
+    displayed_count = null;
+
     constructor(comp_id, cargo, accept, wanted_amount) {
         this.cargo = cargo;
         this.accept = accept;
         this.wanted_amount = wanted_amount;
-        this.timeout = 60 * 30 * 74; // 60 months timeout (30 days, 74 ticks).
+        this.timeout = 5 * 365 * 74; // About 5 years.
 
         // Construct goal.
         local destination, destination_string, goal_type;
@@ -79,16 +82,106 @@ function CompanyGoal::UpdateDelivered(mon)
     }
 }
 
+// Get the number of days in the given month for the given year.
+// @param month Month of the year (1..12).
+// @param year The provided year.
+// @return Number of days of the given month and day combination.
+function CompanyGoal::GetNumberOfDaysInMonth(month, year)
+{
+    // http://www.codecodex.com/wiki/Calculate_the_number_of_days_in_a_month#C.2FC.2B.2B
+
+    if (month == 4 || month == 6 || month == 9 || month == 11) {
+        return 30;
+    } else if (month == 2) {
+        if ((year % 4 == 0 && year % 100 != 0) || year % 400 == 0) {
+            return 29;
+        } else {
+            return 28;
+        }
+    } else {
+        return 31;
+    }
+}
+
+// Get the amount of time between two dates.
+// @param start First date.
+// @param end Second date.
+// @return The number of day/month/year between both dates.
+// @note Since months have varying length, the day count may be off somewhat.
+function CompanyGoal::GetTimeBetweenDates(start, end)
+{
+    if (start >= end) return {days=0, months=0, years=0};
+
+    local start_year = GSDate.GetYear(start);
+    local end_year = GSDate.GetYear(end);
+
+    local num_months = 0;
+    while (start_year < end_year) {
+        start_year += 1;
+        num_months += 12;
+    }
+
+    local start_month = GSDate.GetMonth(start);
+    local end_month = GSDate.GetMonth(end);
+    if (start_month <= end_month) {
+        num_months += end_month - start_month;
+    } else {
+        num_months -= start_month - end_month;
+    }
+
+    local start_day = GSDate.GetDayOfMonth(start);
+    local end_day = GSDate.GetDayOfMonth(end);
+    local num_days;
+    if (start_day <= end_day) {
+        num_days = end_day - start_day;
+    } else {
+        num_months -= 1;
+        if (end_month == 1) {
+            start_month = 12;
+        } else {
+            start_month = end_month - 1;
+        }
+        num_days = this.GetNumberOfDaysInMonth(start_month, end_year) - start_day + end_day;
+    }
+
+    return {days=num_days, months=num_months % 12, years=num_months / 12};
+}
+
 // Update the timeout of the goal
 // @param step Number of passed ticks.
 function CompanyGoal::UpdateTimeout(step)
 {
     this.timeout -= step;
     if (this.goal_id != null) {
+        if (this.delivered_amount > 0) return; // Don't print remaining ticks when there is cargo delivered.
+
         local remaining = this.timeout;
         if (remaining < 0) remaining = 0;
-        if (this.delivered_amount > 0) return; // Don't print remaining ticks when there is cargo delivered.
-        local progress_text = GSText(GSText.STR_TIMEOUT, remaining);
+
+        local now = GSDate.GetCurrentDate();
+        local between = this.GetTimeBetweenDates(now, now + remaining / 74);
+
+        local str_to_show, count_to_use;
+        if (between.years >= 2) {
+            str_to_show = GSText.STR_TIMEOUT_YEARS;
+            count_to_use = between.years;
+        } else if (between.years == 1) {
+            str_to_show = GSText.STR_TIMEOUT_MONTHS;
+            count_to_use = 12 + between.months;
+        } else if (between.months > 0) {
+            str_to_show = GSText.STR_TIMEOUT_MONTHS;
+            count_to_use = between.months;
+        } else {
+            str_to_show = GSText.STR_TIMEOUT_DAYS;
+            count_to_use = between.days;
+        }
+
+        // If string or number changed, update the text in the goal window.
+        if (str_to_show == this.displayed_string && count_to_use == this.displayed_count) return;
+
+        this.displayed_string = str_to_show;
+        this.displayed_count = count_to_use;
+        local progress_text = GSText(this.displayed_string, this.displayed_count);
         GSGoal.SetProgress(this.goal_id, progress_text);
     }
 }
@@ -268,3 +361,4 @@ function CompanyData::CheckAndFinishGoals()
         }
     }
 }
+
