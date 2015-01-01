@@ -376,7 +376,7 @@ function BusyBeeClass::Start()
 //        GSGoal.Question(1, GSCompany.COMPANY_INVALID, lake_news, GSGoal.QT_INFORMATION, GSGoal.BUTTON_GO);
 
         // Sleep until the next event.
-        local delay_time = 5 * 74; // Check events every 2 days.
+        local delay_time = 5 * 74; // Check events every 5 days.
         if (delay_time > new_goal_timeout)  delay_time = new_goal_timeout;
         if (delay_time > monitor_timeout)   delay_time = monitor_timeout;
         if (delay_time > finished_timeout)  delay_time = finished_timeout;

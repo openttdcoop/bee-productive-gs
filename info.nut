@@ -17,7 +17,7 @@
  * Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-class BusyBeeClass extends GSInfo {
+class BusyBeeInfo extends GSInfo {
     function GetAuthor()        { return "alberth & andythenorth"; }
     function GetName()          { return "BusyBee"; }
     function GetDescription()   { return "Goal: Have fun"; }
@@ -27,6 +27,20 @@ class BusyBeeClass extends GSInfo {
     function GetShortName()     { return "BBEE"; }
     function GetAPIVersion()    { return "1.5"; }
     function GetUrl()           { return ""; }
+    function GetSettings();
 }
 
-RegisterGS(BusyBeeClass());
+function BusyBeeInfo::GetSettings()
+{
+    GSInfo.AddSetting({name="num_goals",
+                       description="Number of goals for a company",
+                       min_value=1,
+                       max_value=10,
+                       easy_value=5,
+                       medium_value=5,
+                       hard_value=5,
+                       custom_value=5,
+                       flags=GSInfo.CONFIG_NONE});
+}
+
+RegisterGS(BusyBeeInfo());

@@ -210,7 +210,8 @@ class CompanyData {
         this.active_goals = {};
         this.comp_id = comp_id;
 
-        for (local num = 0; num < 5; num += 1) this.active_goals[num] <- null;
+        local num_goals = GSController.GetSetting("num_goals");
+        for (local num = 0; num < num_goals; num += 1) this.active_goals[num] <- null;
     }
 
     function FinalizeCompany();
