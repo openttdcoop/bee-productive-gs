@@ -9,7 +9,7 @@ class CompanyGoal {
     goal_id = null;       // Number of the goal in OpenTTD goal window.
     timeout = null;       // Timeout in ticks before the goal becomes obsolete.
 
-    constructor(comp_id, cargo_id, accept, wanted_amount) {
+    constructor(comp_id, cargo_id, accept, wanted_amount, cargoes) {
         this.cargo_id = cargo_id;
         this.accept = accept;
         this.wanted_amount = wanted_amount;
@@ -26,7 +26,7 @@ class CompanyGoal {
             destination_string = GSText(GSText.STR_INDUSTRY_NAME, destination);
             goal_type = GSGoal.GT_INDUSTRY;
         }
-        local goal_text = GSText(GSText.STR_COMPANY_GOAL, this.cargo_id, this.wanted_amount, destination_string);
+        local goal_text = GSText(GSText.STR_COMPANY_GOAL, cargoes[this.cargo_id].cid, this.wanted_amount, destination_string);
         this.goal_id = GSGoal.New(comp_id, goal_text, goal_type, destination);
     }
 
@@ -120,7 +120,7 @@ class CompanyData {
     }
 
     function GetMissingGoalCount();
-    function AddActiveGoal(cargo_id, accept, amount);
+    function AddActiveGoal(cargo_id, accept, amount, cargoes);
     function HasGoal(cargo_id, accept);
     function GetNumberOfGoalsForCargo(cargo_id);
     function IndustryClosed(ind_id);
@@ -160,11 +160,11 @@ function CompanyData::GetMissingGoalCount()
 // @param cargo_id Cargo of the goal.
 // @param accept Accepting resource of the goal.
 // @param amount Amount of cargo to deliver.
-function CompanyData::AddActiveGoal(cargo_id, accept, amount)
+function CompanyData::AddActiveGoal(cargo_id, accept, amount, cargoes)
 {
     foreach (num, goal in this.active_goals) {
         if (goal == null) {
-            this.active_goals[num] = CompanyGoal(this.comp_id, cargo_id, accept, amount);
+            this.active_goals[num] = CompanyGoal(this.comp_id, cargo_id, accept, amount, cargoes);
             break;
         }
     }

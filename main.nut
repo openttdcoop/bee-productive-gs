@@ -181,7 +181,7 @@ function BusyBeeClass::CreateChallenge(cid)
                 amount = 10 * 25 + 35 * 50 + (amount - 10 - 35) * 100; // 2000..7500
             }
             if (cdata != null) {
-                cdata.AddActiveGoal(cargo, accept, amount);
+                cdata.AddActiveGoal(cargo, accept, amount, this.cargoes);
 
                 local destination_name;
                 if ("town" in accept) {
