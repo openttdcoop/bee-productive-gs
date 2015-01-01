@@ -1,6 +1,24 @@
 
 require("company.nut");
 
+// Cargo description.
+class Cargo
+{
+    index   = null; ///< Index of the cargo in the cargo table (#BusyBeeClass.cargoes).
+    cid     = null; ///< Id of the cargo in GRF.
+    freight = null; ///< Whether the cargo is considered to be freight.
+    effect  = null; ///< Town effect (One of #GSCargo.TownEffect)
+
+    constructor(index, cid, freight, effect)
+    {
+        this.index = index;
+        this.cid = cid;
+        this.freight = freight;
+        this.effect = effect;
+    }
+}
+
+
 class BusyBeeClass extends GSController
 {
     cargoes = null; // Cargoes of the game (index -> 'cid' number, 'freight' boolean, 'effect' on town).
@@ -20,9 +38,8 @@ function BusyBeeClass::ExamineCargoes()
     for (local cid = 0; cid < 32; cid += 1) {
         if (!GSCargo.IsValidCargo(cid)) continue;
 
-        local is_freight = GSCargo.IsFreight(cid);
-        local town_effect = GSCargo.GetTownEffect(cid);
-        this.cargoes[this.num_cargoes] <- {cid=cid, freight=is_freight, effect=town_effect};
+        local cargo = Cargo(this.num_cargoes, cid, GSCargo.IsFreight(cid),  GSCargo.GetTownEffect(cid));
+        this.cargoes[this.num_cargoes] <- cargo;
         this.num_cargoes += 1;
     }
 }
@@ -124,7 +141,7 @@ function BusyBeeClass::GetDistanceScore(desired, actual)
 }
 
 // Try to find a challenge for a given cargo and a desired distance.
-// @param cargo Cargo entry from BusyBeeClass.cargoes (table with 'cid', 'freight', 'effect').
+// @param cargo Cargo entry from BusyBeeClass.cargoes (#Cargo instance).
 // @param distance Desired distance between source and target.
 // @param cid Company to find a challenge for.
 // @return Best accepting industry to use, or 'null' if no industry-pair found.
