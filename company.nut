@@ -2,15 +2,15 @@
 
 // A goal for a company.
 class CompanyGoal {
-    cargo_id = null;      // Cargo id
+    cargo = null;         // Cargo data (#Cargo)
     accept = null;        // Accepting resource.
     wanted_amount = null; // Amount to deliver for achieving the goal.
     delivered_amount = 0; // Amount delivered so far.
     goal_id = null;       // Number of the goal in OpenTTD goal window.
     timeout = null;       // Timeout in ticks before the goal becomes obsolete.
 
-    constructor(comp_id, cargo_id, accept, wanted_amount, cargoes) {
-        this.cargo_id = cargo_id;
+    constructor(comp_id, cargo, accept, wanted_amount) {
+        this.cargo = cargo;
         this.accept = accept;
         this.wanted_amount = wanted_amount;
         this.timeout = 60 * 30 * 74; // 60 months timeout (30 days, 74 ticks).
@@ -26,7 +26,7 @@ class CompanyGoal {
             destination_string = GSText(GSText.STR_INDUSTRY_NAME, destination);
             goal_type = GSGoal.GT_INDUSTRY;
         }
-        local goal_text = GSText(GSText.STR_COMPANY_GOAL, cargoes[this.cargo_id].cid, this.wanted_amount, destination_string);
+        local goal_text = GSText(GSText.STR_COMPANY_GOAL, cargo.cid, this.wanted_amount, destination_string);
         this.goal_id = GSGoal.New(comp_id, goal_text, goal_type, destination);
     }
 
@@ -41,8 +41,8 @@ class CompanyGoal {
 // @param [inout] mon Table with 'cargo_id' to 'town' and 'ind' tables, holding ids to 'null'.
 function CompanyGoal::AddMonitorElement(mon)
 {
-    if (!(this.cargo_id in mon)) mon[this.cargo_id] <- {};
-    mon = mon[this.cargo_id];
+    if (!(this.cargo.cid in mon)) mon[this.cargo.cid] <- {};
+    mon = mon[this.cargo.cid];
     if ("ind" in this.accept) {
         if (!("ind" in mon)) mon.ind <- {};
         mon.ind[this.accept.ind] <- null;
@@ -57,9 +57,9 @@ function CompanyGoal::UpdateDelivered(mon)
 {
     local delivered;
     if ("ind" in this.accept) {
-        delivered = mon[this.cargo_id].ind[this.accept.ind];
+        delivered = mon[this.cargo.cid].ind[this.accept.ind];
     } else {
-        delivered = mon[this.cargo_id].town[this.accept.town];
+        delivered = mon[this.cargo.cid].town[this.accept.town];
     }
 
     if (delivered > 0) {
@@ -112,25 +112,26 @@ class CompanyData {
 
     active_goals = null;
 
-    constructor(comp_id) {
+    constructor(comp_id)
+    {
         this.active_goals = {};
         this.comp_id = comp_id;
 
         for (local num = 0; num < 5; num += 1) this.active_goals[num] <- null;
     }
 
+    function FinalizeCompany();
+
     function GetMissingGoalCount();
-    function AddActiveGoal(cargo_id, accept, amount, cargoes);
+    function AddActiveGoal(cargo, accept, amount);
     function HasGoal(cargo_id, accept);
     function GetNumberOfGoalsForCargo(cargo_id);
     function IndustryClosed(ind_id);
 
-    function AddMonitorElement(mon);
-    function UpdateDelivered(mon);
+    function AddMonitorElements(cmon);
+    function UpdateDelivereds(cmon);
     function UpdateTimeout(step);
     function CheckAndFinishGoals();
-
-    function FinalizeCompany();
 };
 
 // Company is about to be deleted, last chance to clean up.
@@ -157,28 +158,28 @@ function CompanyData::GetMissingGoalCount()
 }
 
 // Add a goal to the list of the company.
-// @param cargo_id Cargo of the goal.
+// @param cargo Cargo of the goal (#Cargo).
 // @param accept Accepting resource of the goal.
-// @param amount Amount of cargo to deliver.
-function CompanyData::AddActiveGoal(cargo_id, accept, amount, cargoes)
+// @param wanted_amount Amount of cargo to deliver.
+function CompanyData::AddActiveGoal(cargo, accept, wanted_amount)
 {
     foreach (num, goal in this.active_goals) {
         if (goal == null) {
-            this.active_goals[num] = CompanyGoal(this.comp_id, cargo_id, accept, amount, cargoes);
+            this.active_goals[num] = CompanyGoal(this.comp_id, cargo, accept, wanted_amount);
             break;
         }
     }
 }
 
 // Does the company have an active goal for the given cargo and accepting resource?
-// @param cargo_id Cargo to check for.
+// @param cargo_id Cargo to check.
 // @param accept Accepting resource to check.
 // @return Whether the company has a goal for the cargo and resource.
 function CompanyData::HasGoal(cargo_id, accept)
 {
     foreach (num, goal in this.active_goals) {
         if (goal == null) continue;
-        if (goal.cargo_id != cargo_id) continue;
+        if (goal.cargo.cid != cargo_id) continue;
         if ("town" in accept) {
             if ("ind" in goal.accept || accept.town != goal.accept.town) continue;
         } else {
@@ -197,7 +198,7 @@ function CompanyData::GetNumberOfGoalsForCargo(cargo_id)
     local count = 0;
     foreach (num, goal in this.active_goals) {
         if (goal == null) continue;
-        if (goal.cargo_id == cargo_id) count += 1;
+        if (goal.cargo.cid == cargo_id) count += 1;
     }
     return count;
 }

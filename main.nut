@@ -45,12 +45,12 @@ function BusyBeeClass::ExamineCargoes()
 }
 
 // Find cargo sources.
-// @param cargo_id Cargo index (index in this.cargoes).
+// @param cargo_index Cargo index (index in this.cargoes).
 // @return List of resources that produce the requested cargo, list of
 //      'ind' or 'town' number, 'prod' produced amount, 'transp' transported amount, and 'loc' location.
-function BusyBeeClass::FindSources(cargo_id)
+function BusyBeeClass::FindSources(cargo_index)
 {
-    local cargo = this.cargoes[cargo_id];
+    local cargo = this.cargoes[cargo_index];
     local num_sources = 0;
     local sources = {};
 
@@ -93,12 +93,12 @@ function BusyBeeClass::FindSources(cargo_id)
 }
 
 // Find destinations for the cargo.
-// @param cargo_id Cargo index (index in this.cargoes).
+// @param cargo_index Cargo index (index in this.cargoes).
 // @param company Company to inspect.
 // @return A list of destinations, tables 'ind' or 'town' id, and a 'loc' location.
-function BusyBeeClass::FindDestinations(cargo_id, company)
+function BusyBeeClass::FindDestinations(cargo_index, company)
 {
-    local cargo = this.cargoes[cargo_id];
+    local cargo = this.cargoes[cargo_index];
     local num_dests = 0;
     local dests = {};
 
@@ -141,23 +141,24 @@ function BusyBeeClass::GetDistanceScore(desired, actual)
 }
 
 // Try to find a challenge for a given cargo and a desired distance.
-// @param cargo Cargo entry from BusyBeeClass.cargoes (#Cargo instance).
+// @param cargo_index Index in BusyBeeClass.cargoes.
 // @param distance Desired distance between source and target.
-// @param cid Company to find a challenge for.
+// @param comp_id Company to find a challenge for.
 // @return Best accepting industry to use, or 'null' if no industry-pair found.
-function BusyBeeClass::FindChallenge(cargo_id, distance, cid)
+function BusyBeeClass::FindChallenge(cargo_index, distance, comp_id)
 {
-    local prods = this.FindSources(cargo_id);
+    local prods = this.FindSources(cargo_index);
     if (prods.len() == 0) return null;
-    local accepts = this.FindDestinations(cargo_id, cid);
+    local accepts = this.FindDestinations(cargo_index, comp_id);
     if (accepts.len() == 0) return null;
 
-    local cdata = this.companies[cid];
+    local cdata = this.companies[comp_id];
+    local cargo = this.cargoes[cargo_index];
 
     local best_score = 0; // Best overall distance.
     local best_accept = null; // Best accepting to target.
     foreach (_, accept in accepts) {
-        if (cdata != null && cdata.HasGoal(cargo_id, accept)) continue; // Prevent duplicates.
+        if (cdata != null && cdata.HasGoal(cargo.cid, accept)) continue; // Prevent duplicates.
 
         local min_prod_distance = distance * 2; // Smallest found distance to the accepting industry.
         local prod_score = best_score;
@@ -180,14 +181,16 @@ function BusyBeeClass::FindChallenge(cargo_id, distance, cid)
 }
 
 // Try to add a goal for a company.
-function BusyBeeClass::CreateChallenge(cid)
+// @param comp_id Company to find a challenge for.
+function BusyBeeClass::CreateChallenge(comp_id)
 {
-    local cdata = this.companies[cid];
+    local cdata = this.companies[comp_id];
     for (local attempt = 0;attempt < 20; attempt += 1) {
-        local cargo = GSBase.RandRange(this.num_cargoes);
-        if (cdata.GetNumberOfGoalsForCargo(cargo) > 1) continue; // Already 2 goals for this cargo.
+        local cargo_index = GSBase.RandRange(this.num_cargoes);
+        local cargo = this.cargoes[cargo_index];
+        if (cdata.GetNumberOfGoalsForCargo(cargo.cid) > 1) continue; // Already 2 goals for this cargo.
         local distance = GSBase.RandRange(200) + 50; // Distance 50 .. 250 tiles.
-        local accept = FindChallenge(cargo, distance, cid);
+        local accept = FindChallenge(cargo_index, distance, comp_id);
         if (accept != null) {
             local amount = GSBase.RandRange(100) + 1;
             if (amount < 10) {
@@ -198,17 +201,16 @@ function BusyBeeClass::CreateChallenge(cid)
                 amount = 10 * 25 + 35 * 50 + (amount - 10 - 35) * 100; // 2000..7500
             }
             if (cdata != null) {
-                cdata.AddActiveGoal(cargo, accept, amount, this.cargoes);
+                cdata.AddActiveGoal(cargo, accept, amount);
 
-                local destination_name;
+                local dest_name;
                 if ("town" in accept) {
-                    destination_name = GSTown.GetName(accept.town);
+                    dest_name = GSTown.GetName(accept.town);
                 } else {
-                    destination_name = GSIndustry.GetName(accept.ind);
+                    dest_name = GSIndustry.GetName(accept.ind);
                 }
-                GSLog.Info("Company " + cid + ": " + amount + " of " +
-                           GSCargo.GetCargoLabel(this.cargoes[cargo].cid) +
-                           " to " + destination_name);
+                GSLog.Info("Company " + comp_id + ": " + amount + " of " +
+                           GSCargo.GetCargoLabel(cargo.cid) + " to " + dest_name);
                 break;
             }
         }
@@ -325,8 +327,8 @@ function BusyBeeClass::Start()
 
     // Construct empty companies.
     this.companies = {};
-    for (local cid = GSCompany.COMPANY_FIRST; cid <= GSCompany.COMPANY_LAST; cid++) {
-        this.companies[cid] <- null;
+    for (local comp_id = GSCompany.COMPANY_FIRST; comp_id <= GSCompany.COMPANY_LAST; comp_id++) {
+        this.companies[comp_id] <- null;
     }
 
     // Main event loop.
@@ -361,7 +363,7 @@ function BusyBeeClass::Start()
 
         // Check for finished goals, and remove them if they exist.
         if (finished_timeout <= 0) {
-            foreach (cid, cdata in companies) {
+            foreach (comp_id, cdata in companies) {
                 if (cdata == null) continue;
                 cdata.CheckAndFinishGoals();
             }
