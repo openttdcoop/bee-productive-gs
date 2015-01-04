@@ -1,6 +1,6 @@
 /*
  * This file is part of BusyBee, which is a GameScript for OpenTTD
- * Copyright (C) 2014  alberth / andythenorth
+ * Copyright (C) 2014-2015  alberth / andythenorth
  *
  * BusyBee is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by
