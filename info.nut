@@ -27,6 +27,7 @@ class BusyBeeInfo extends GSInfo {
     function GetShortName()     { return "BBEE"; }
     function GetAPIVersion()    { return "1.5"; }
     function GetUrl()           { return ""; }
+    function MinVersionToLoad() { return this.GetVersion(); }
     function GetSettings();
 }
 

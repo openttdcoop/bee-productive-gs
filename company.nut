@@ -12,25 +12,33 @@ class CompanyGoal {
     displayed_string = null;
     displayed_count = null;
 
+    // Construct a company goal.
+    // @param comp_id Company owning the goal. Use \c null if no OpenTTD goal should be created.
+    // @param cargo Cargo that should be delivered.
+    // @param accept Accepting resource.
+    // @param wanted_amount Amount of cargo that should be delivered to fulfil the goal.
     constructor(comp_id, cargo, accept, wanted_amount) {
         this.cargo = cargo;
         this.accept = accept;
         this.wanted_amount = wanted_amount;
         this.timeout = 5 * 365 * 74; // About 5 years.
 
-        // Construct goal.
-        local destination, destination_string, goal_type;
-        if ("town" in this.accept) {
-            destination = accept.town;
-            destination_string = GSText(GSText.STR_TOWN_NAME, destination);
-            goal_type = GSGoal.GT_TOWN;
-        } else {
-            destination = accept.ind;
-            destination_string = GSText(GSText.STR_INDUSTRY_NAME, destination);
-            goal_type = GSGoal.GT_INDUSTRY;
+        // Construct goal if a company id was provided.
+        if (comp_id != null) {
+            local destination, destination_string, goal_type;
+            if ("town" in this.accept) {
+                destination = accept.town;
+                destination_string = GSText(GSText.STR_TOWN_NAME, destination);
+                goal_type = GSGoal.GT_TOWN;
+            } else {
+                destination = accept.ind;
+                destination_string = GSText(GSText.STR_INDUSTRY_NAME, destination);
+                goal_type = GSGoal.GT_INDUSTRY;
+            }
+            local goal_text = GSText(GSText.STR_COMPANY_GOAL, cargo.cid,
+                                     this.wanted_amount, destination_string);
+            this.goal_id = GSGoal.New(comp_id, goal_text, goal_type, destination);
         }
-        local goal_text = GSText(GSText.STR_COMPANY_GOAL, cargo.cid, this.wanted_amount, destination_string);
-        this.goal_id = GSGoal.New(comp_id, goal_text, goal_type, destination);
     }
 
     function AddMonitorElement(mon);
@@ -38,7 +46,35 @@ class CompanyGoal {
     function UpdateTimeout(step);
     function CheckFinished();
     function FinalizeGoal();
+
+    function SaveGoal();
+    static function LoadGoal(num, loaded_data);
 };
+
+function CompanyGoal::SaveGoal()
+{
+    return {cid=this.cargo.cid, accept=this.accept, wanted=this.wanted_amount,
+            delivered=this.delivered_amount, goal=this.goal_id, timeout=this.timeout};
+}
+
+// Load an existing goal.
+// @param loaded_data Data of the goal.
+// @param cargoes Cargoes of the game.
+// @return The loaded goal, if loading went ok.
+function CompanyGoal::LoadGoal(loaded_data, cargoes)
+{
+    local goal = null;
+    foreach (cargo_num, cargo in cargoes) {
+        if (cargo.cid == loaded_data.cid) {
+            goal = CompanyGoal(null, cargo, loaded_data.accept, loaded_data.wanted);
+            goal.delivered_amount = loaded_data.delivered;
+            goal.goal_id = loaded_data.goal;
+            goal.timeout = loaded_data.timeout;
+            return goal;
+        }
+    }
+    return null;
+}
 
 // Add an entry to the collection of monitored things.
 // @param [inout] mon Table with 'cargo_id' to 'town' and 'ind' tables, holding ids to 'null'.
@@ -216,6 +252,7 @@ class CompanyData {
 
     function FinalizeCompany();
 
+    function GoalsPostLoadCheck();
     function GetMissingGoalCount();
     function AddActiveGoal(cargo, accept, amount);
     function HasGoal(cargo_id, accept);
@@ -226,7 +263,35 @@ class CompanyData {
     function UpdateDelivereds(cmon);
     function UpdateTimeout(step);
     function CheckAndFinishGoals();
+
+    function SaveCompany();
+    static function LoadCompany(comp_id, loaded_data);
 };
+
+// Save company data.
+function CompanyData::SaveCompany()
+{
+    local result = {};
+    foreach (num, goal in this.active_goals) {
+        if (goal == null) continue;
+        result[num] <- goal.SaveGoal();
+    }
+    return result;
+}
+
+// Load company data from the file, constructing a new company.
+// @param comp_id Company id.
+// @param loaded_data Data to load for this company.
+// @param cargoes Cargoes of the game.
+// @return The created company.
+function CompanyData::LoadCompany(comp_id, loaded_data, cargoes)
+{
+    local cdata = CompanyData(comp_id);
+    foreach(num, loaded_goal_data in loaded_data) {
+        cdata.active_goals[num] = CompanyGoal.LoadGoal(loaded_goal_data, cargoes);
+    }
+    return cdata;
+}
 
 // Company is about to be deleted, last chance to clean up.
 function CompanyData::FinalizeCompany()
@@ -238,7 +303,6 @@ function CompanyData::FinalizeCompany()
         }
     }
 }
-
 
 // Find the number of active goals that are missing for this company.
 // @return Number of additional goals that the company needs.
@@ -304,6 +368,19 @@ function CompanyData::IndustryClosed(ind_id)
     foreach (num, goal in this.active_goals) {
         if (goal == null) continue;
         if ("ind" in goal.accept && goal.accept.ind == ind_id) {
+            goal.FinalizeGoal();
+            this.active_goals[num] = null;
+        }
+    }
+}
+
+// Game data was just loaded, check whether the goals make sense.
+function CompanyData::GoalsPostLoadCheck()
+{
+    // Check whether the industries still live.
+    foreach (num, goal in this.active_goals) {
+        if (goal == null) continue;
+        if ("ind" in goal.accept && !GSIndustry.IsValidIndustry(goal.accept.ind)) {
             goal.FinalizeGoal();
             this.active_goals[num] = null;
         }

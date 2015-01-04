@@ -26,12 +26,40 @@ class BusyBeeClass extends GSController
 
     companies = null;
 
+    loaded = false;
+
+    function Load(version, data);
+    function Save();
     function Start();
 }
 
-// Examine and store cargo types of the game.
-function BusyBeeClass::ExamineCargoes()
+function BusyBeeClass::Load(version, data)
 {
+    this.loaded = true;
+    this.Initialize();
+
+    foreach (comp_id, loaded_comp_data in data) {
+        local cdata = CompanyData.LoadCompany(comp_id, loaded_comp_data, this.cargoes);
+        this.companies[comp_id] = cdata;
+    }
+}
+
+function BusyBeeClass::Save()
+{
+    local result = {};
+    foreach (comp_id, cdata in this.companies) {
+        if (cdata == null) continue;
+        result[comp_id] <- cdata.SaveCompany();
+    }
+    return result;
+}
+
+// Initialize core data of the script.
+function BusyBeeClass::Initialize()
+{
+    if (this.companies != null) return; // Already initialized.
+
+    // Examine and store cargo types of the game.
     this.cargoes = {};
     this.num_cargoes = 0;
 
@@ -41,6 +69,12 @@ function BusyBeeClass::ExamineCargoes()
         local cargo = Cargo(this.num_cargoes, cid, GSCargo.IsFreight(cid),  GSCargo.GetTownEffect(cid));
         this.cargoes[this.num_cargoes] <- cargo;
         this.num_cargoes += 1;
+    }
+
+    // Construct empty companies.
+    this.companies = {};
+    for (local comp_id = GSCompany.COMPANY_FIRST; comp_id <= GSCompany.COMPANY_LAST; comp_id++) {
+        this.companies[comp_id] <- null;
     }
 }
 
@@ -251,7 +285,7 @@ function BusyBeeClass::ProcessEvents()
 
         } else if (event_type == GSEvent.ET_INDUSTRY_CLOSE) {
             local ind_id = GSEventIndustryClose.Convert(event).GetIndustryID();
-            foreach (comp_id, cdata in companies) {
+            foreach (comp_id, cdata in this.companies) {
                 if (cdata != null) cdata.IndustryClosed(ind_id);
             }
         }
@@ -268,7 +302,7 @@ function BusyBeeClass::TryAddNewGoal()
     local total_missing = 0; // Total number of missing goals.
     local best_comp_id = null;
     local comp_id_missing = 0;
-    foreach (comp_id, cdata in companies) {
+    foreach (comp_id, cdata in this.companies) {
         if (cdata == null) continue;
         local missing = cdata.GetMissingGoalCount();
         total_missing += missing;
@@ -299,7 +333,7 @@ function BusyBeeClass::UpdateDeliveries(old_cmon)
 
     local cmon = {};
     // Collect monitors that are of interest.
-    foreach (comp_id, cdata in companies) {
+    foreach (comp_id, cdata in this.companies) {
         if (cdata == null) continue;
         cdata.AddMonitorElements(cmon);
     }
@@ -308,7 +342,7 @@ function BusyBeeClass::UpdateDeliveries(old_cmon)
 
     // Distribute the retrieved data.
     local finished = false;
-    foreach (comp_id, cdata in companies) {
+    foreach (comp_id, cdata in this.companies) {
         if (cdata == null) continue;
         if (cdata.UpdateDelivereds(cmon)) finished = true;
     }
@@ -319,23 +353,47 @@ function BusyBeeClass::UpdateDeliveries(old_cmon)
     return {cmon=cmon, finished_goals=finished};
 }
 
+// The script data got loaded from file, check it against the game.
+function BusyBeeClass::CompaniesPostLoadCheck()
+{
+    // Check companies.
+    for (local comp_id = GSCompany.COMPANY_FIRST; comp_id <= GSCompany.COMPANY_LAST; comp_id++) {
+        if (GSCompany.ResolveCompanyID(comp_id) == GSCompany.COMPANY_INVALID) {
+            if (this.companies[comp_id] != null) {
+                this.companies[comp_id].FinalizeCompany();
+                this.companies[comp_id] = null;
+                GSLog.Info("Deleted company " + comp_id + " (disappeared after loading).");
+            }
+        } else {
+            if (this.companies[comp_id] == null) {
+                this.companies[comp_id] = CompanyData(comp_id);
+                GSLog.Info("Created company " + comp_id + " (appeared from nowhere after loading).");
+            }
+        }
+    }
+
+    // Check industries used for goals.
+    foreach (comp_id, cdata in this.companies) {
+        if (cdata == null) continue;
+        cdata.GoalsPostLoadCheck();
+    }
+}
+
 function BusyBeeClass::Start()
 {
+    this.Initialize();
     this.Sleep(1); // Wait for the game to start.
 
-    this.ExamineCargoes();
-
-    // Construct empty companies.
-    this.companies = {};
-    for (local comp_id = GSCompany.COMPANY_FIRST; comp_id <= GSCompany.COMPANY_LAST; comp_id++) {
-        this.companies[comp_id] <- null;
+    local cmonitor = null;
+    if (this.loaded) { // Script data was loaded.
+        this.CompaniesPostLoadCheck();
+        cmonitor = {}; // Don't kill existing monitors after loading.
     }
 
     // Main event loop.
     local new_goal_timeout = 0;
     local finished_timeout = 0;
     local monitor_timeout = 0;
-    local cmonitor = null;
     while (true) {
         local result = this.ProcessEvents();
         if (result.force_goal) new_goal_timeout = 0;
@@ -363,7 +421,7 @@ function BusyBeeClass::Start()
 
         // Check for finished goals, and remove them if they exist.
         if (finished_timeout <= 0) {
-            foreach (comp_id, cdata in companies) {
+            foreach (comp_id, cdata in this.companies) {
                 if (cdata == null) continue;
                 cdata.CheckAndFinishGoals();
             }
@@ -389,7 +447,7 @@ function BusyBeeClass::Start()
 
         // Update timeout of the goals as well.
         if (!GSGame.IsPaused()) {
-            foreach (comp_id, cdata in companies) {
+            foreach (comp_id, cdata in this.companies) {
                 if (cdata == null) continue;
                 cdata.UpdateTimeout(delay_time);
             }
