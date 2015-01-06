@@ -38,7 +38,14 @@ class CompanyGoal {
         this.cargo = cargo;
         this.accept = accept;
         this.wanted_amount = wanted_amount;
-        this.timeout = 5 * 365 * 74; // About 5 years.
+
+        local years = GSController.GetSetting("wait_years");
+        this.timeout = years * 365 * 74;
+        while (years >= 4) {
+            this.timeout += 74; // Add one day for every 4 years.
+            years -= 4;
+        }
+        if (years >= 2) this.timeout += 74 / 2; // And 1/2 a day for 2 years.
 
         // Construct goal if a company id was provided.
         if (comp_id != null) {

@@ -42,6 +42,15 @@ function BusyBeeInfo::GetSettings()
                        hard_value=5,
                        custom_value=5,
                        flags=GSInfo.CONFIG_NONE});
+    GSInfo.AddSetting({name="wait_years",
+                       description="Number of years to wait to fulfill a new goal",
+                       min_value=4,
+                       max_value=20,
+                       easy_value=10,
+                       medium_value=5,
+                       hard_value=3,
+                       custom_value=7,
+                       flags=GSInfo.CONFIG_INGAME});
 }
 
 RegisterGS(BusyBeeInfo());
