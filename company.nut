@@ -49,24 +49,29 @@ class CompanyGoal {
 
         // Construct goal if a company id was provided.
         if (comp_id != null) {
-            local destination, destination_string, goal_type;
+            local destination, destination_string, destination_string_news, goal_type;
             if ("town" in this.accept) {
                 destination = accept.town;
                 destination_string = GSText(GSText.STR_TOWN_NAME, destination);
+                destination_string_news = GSText(GSText.STR_TOWN_NAME_NEWS, destination);
                 goal_type = GSGoal.GT_TOWN;
             } else {
                 destination = accept.ind;
                 destination_string = GSText(GSText.STR_INDUSTRY_NAME, destination);
+                destination_string_news = GSText(GSText.STR_INDUSTRY_NAME_NEWS, destination);
                 goal_type = GSGoal.GT_INDUSTRY;
             }
             local goal_text = GSText(GSText.STR_COMPANY_GOAL, cargo.cid,
                                      this.wanted_amount, destination_string);
             this.goal_id = GSGoal.New(comp_id, goal_text, goal_type, destination);
+            local goal_news_text = GSText(GSText.STR_COMPANY_GOAL_NEWS, cargo.cid,
+                                     this.wanted_amount, destination_string_news);
+            GSNews.Create(GSNews.NT_GENERAL, goal_news_text, comp_id);
         }
     }
 
     function AddMonitorElement(mon);
-    function UpdateDelivered(mon);
+    function UpdateDelivered(mon, comp_id);
     function UpdateTimeout(step);
     function CheckFinished();
     function FinalizeGoal();
@@ -116,7 +121,7 @@ function CompanyGoal::AddMonitorElement(mon)
 }
 
 // Update the delivered amount from the monitored amounts.
-function CompanyGoal::UpdateDelivered(mon)
+function CompanyGoal::UpdateDelivered(mon, comp_id)
 {
     local delivered;
     if ("ind" in this.accept) {
@@ -132,6 +137,15 @@ function CompanyGoal::UpdateDelivered(mon)
             if (this.delivered_amount >= this.wanted_amount) {
                 perc = 100;
                 GSGoal.SetCompleted(this.goal_id, true);
+                local destination_string_news;
+                if ("town" in this.accept) {
+                    destination_string_news = GSText(GSText.STR_TOWN_NAME_NEWS, accept.town);
+                } else {
+                    destination_string_news = GSText(GSText.STR_INDUSTRY_NAME_NEWS, accept.ind);
+                }
+                local goal_won_news = GSText(GSText.STR_COMPANY_GOAL_WON_NEWS, cargo.cid,
+                                         this.wanted_amount, destination_string_news);
+                GSNews.Create(GSNews.NT_GENERAL, goal_won_news, comp_id);
             } else {
                 perc = 100 * this.delivered_amount / this.wanted_amount;
                 if (perc > 100) perc = 100;
@@ -437,7 +451,7 @@ function CompanyData::UpdateDelivereds(cmon)
     if (this.comp_id in cmon) {
         foreach (num, goal in this.active_goals) {
             if (goal == null) continue;
-            goal.UpdateDelivered(cmon[this.comp_id]);
+            goal.UpdateDelivered(cmon[this.comp_id], this.comp_id);
             if (goal.CheckFinished()) finished = true;
         }
     }
