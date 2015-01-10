@@ -1,8 +1,10 @@
-STR_LAKE_NEWS       :There are {NUM} {}fish here
-STR_COMPANY_GOAL    :Deliver {CARGO_LONG} to {STRING}
-STR_PROGRESS        :{NUM}% done
-STR_TIMEOUT_YEARS   :{NUM} year{P "" s} remaining
-STR_TIMEOUT_MONTHS  :{NUM} month{P "" s} remaining
-STR_TIMEOUT_DAYS    :{NUM} day{P "" s} remaining
-STR_TOWN_NAME       :{TOWN}
-STR_INDUSTRY_NAME   :{INDUSTRY}
+##plural 0
+
+STR_GOAL_NEWS       :
+STR_COMPANY_GOAL    :Deliver {GOLD}{CARGO_LONG} {ORANGE}to {STRING}
+STR_PROGRESS        :{YELLOW}{NUM}% {ORANGE}done
+STR_TIMEOUT_YEARS   :{GOLD}{NUM} {ORANGE}year{P "" s} remaining
+STR_TIMEOUT_MONTHS  :{GOLD}{NUM} {ORANGE}month{P "" s} remaining
+STR_TIMEOUT_DAYS    :{GOLD}{NUM} {ORANGE}day{P "" s} remaining
+STR_TOWN_NAME       :{WHITE}{TOWN}
+STR_INDUSTRY_NAME   :{YELLOW}{INDUSTRY}

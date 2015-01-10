@@ -20,14 +20,14 @@
 class BusyBeeInfo extends GSInfo {
     function GetAuthor()        { return "alberth & andythenorth"; }
     function GetName()          { return "BusyBee"; }
-    function GetDescription()   { return "Goal: Have fun"; }
-    function GetVersion()       { return 0; }
-    function GetDate()          { return "2014-12-27"; }
+    function GetDescription()   { return "Make connection, transport cargo"; }
+    function GetVersion()       { return 1; }
+    function GetDate()          { return "2015-01-10"; }
     function CreateInstance()   { return "BusyBeeClass"; }
     function GetShortName()     { return "BBEE"; }
     function GetAPIVersion()    { return "1.5"; }
     function GetUrl()           { return ""; }
-    function MinVersionToLoad() { return this.GetVersion(); }
+    function MinVersionToLoad() { return 0; }
     function GetSettings();
 }
 
