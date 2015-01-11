@@ -17,17 +17,24 @@
  * Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+SAVEGAME_VERSION <- 1; // Set manually if/when save games break.
+MINCOMPATIBLE_SAVEGAME_VERSION <- 1; // cset: 06b75370997d
+
+PROGRAM_VERSION <- Syntax error, set by 'make bundle'.
+PROGRAM_DATE <- Syntax error, set by 'make bundle'.
+PROGRAM_NAME <- Syntax error, set by 'make bundle'.
+
 class BusyBeeInfo extends GSInfo {
     function GetAuthor()        { return "alberth & andythenorth"; }
-    function GetName()          { return "BusyBee"; }
+    function GetName()          { return PROGRAM_NAME; }
     function GetDescription()   { return "Make connection, transport cargo"; }
-    function GetVersion()       { return 1; }
-    function GetDate()          { return "2015-01-10"; }
+    function GetVersion()       { return PROGRAM_VERSION + SAVEGAME_VERSION * 100000; }
+    function GetDate()          { return PROGRAM_DATE; }
     function CreateInstance()   { return "BusyBeeClass"; }
     function GetShortName()     { return "BBEE"; }
-    function GetAPIVersion()    { return "1.5"; }
-    function GetUrl()           { return ""; }
-    function MinVersionToLoad() { return 1; }
+    function GetAPIVersion()    { return "1.4.2"; }
+    function GetUrl()           { return "http://dev.openttdcoop.org/projects/busybee-gs"; }
+    function MinVersionToLoad() { return MINCOMPATIBLE_SAVEGAME_VERSION; }
     function GetSettings();
 }
 
