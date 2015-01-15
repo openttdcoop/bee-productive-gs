@@ -174,11 +174,24 @@ function BusyBeeClass::FindDestinations(cargo_index, company)
             local rating = GSTown.GetRating(town, company);
             if (rating in acceptable_ratings) {
                 local loc = GSTown.GetLocation(town);
-                dests[num_dests] <- {town=town, loc=loc};
-                num_dests += 1;
+                local amount = GSTile.GetCargoAcceptance(loc, cargo.cid, 1, 1, 4);
+                if (amount > 8) {
+                    dests[num_dests] <- {town=town, loc=loc};
+                    num_dests += 1;
+                }
             }
         }
     }
+// Dump destinations for a cargo.
+//    GSLog.Info("Destinations for " + GSCargo.GetCargoLabel(cargo.cid));
+//    foreach (_, dst in dests) {
+//        if ("ind" in dst) {
+//            GSLog.Info("Industry " + GSIndustry.GetName(dst.ind) + " accepts");
+//        } else {
+//            GSLog.Info("Town " + GSTown.GetName(dst.town) + " accepts");
+//        }
+//    }
+//    GSLog.Info("");
     return dests;
 }
 
