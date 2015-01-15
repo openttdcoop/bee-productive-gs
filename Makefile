@@ -58,6 +58,6 @@ $(BUNDLE_DIR)/$(BUNDLE_FILENAME).tar: $(SOURCES) $(LANGFILES) $(DOCS)
 
 bananas: bundle
 	echo "[BaNaNaS]"
-	sed 's/^version *=.*/version = $(DISPLAY_VERSION)/' $(BANANAS_INI) > "$(BUNDLE_DIR)/$(BANANAS_INI)"
+	sed 's/^version *=.*/version = $(REPO_VERSION)/' $(BANANAS_INI) > "$(BUNDLE_DIR)/$(BANANAS_INI)"
 	$(MUSA) -r -x license.txt -c $(BUNDLE_DIR)/$(BANANAS_INI) "$(BUNDLE_DIR)/$(BUNDLE_FILENAME)"
 
