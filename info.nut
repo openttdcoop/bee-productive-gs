@@ -32,7 +32,7 @@ class BusyBeeInfo extends GSInfo {
     function GetDate()          { return PROGRAM_DATE; }
     function CreateInstance()   { return "BusyBeeClass"; }
     function GetShortName()     { return "BBEE"; }
-    function GetAPIVersion()    { return "1.4.2"; }
+    function GetAPIVersion()    { return "1.5"; }
     function GetUrl()           { return "http://dev.openttdcoop.org/projects/busybee-gs"; }
     function MinVersionToLoad() { return MINCOMPATIBLE_SAVEGAME_VERSION; }
     function GetSettings();
