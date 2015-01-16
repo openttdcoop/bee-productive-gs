@@ -26,9 +26,10 @@ MUSA = musa.py
 
 VERSION_INFO := "$(shell ./findversion.sh)"
 REPO_VERSION := $(shell echo ${VERSION_INFO} | cut -f2)
+REPO_TAG := $(shell echo ${VERSION_INFO} | cut -f5)
 REPO_DATE := $(shell echo ${VERSION_INFO} | cut -f7)
 
-DISPLAY_NAME := $(PROJECT_NAME) $(shell echo ${VERSION_INFO} | cut -f5)
+DISPLAY_NAME := $(PROJECT_NAME) $(REPO_TAG)
 BUNDLE_NAME := $(PROJECT_NAME)
 BUNDLE_FILENAME = $(shell echo "$(DISPLAY_NAME)" | sed 's/ /-/g')
 
@@ -58,6 +59,6 @@ $(BUNDLE_DIR)/$(BUNDLE_FILENAME).tar: $(SOURCES) $(LANGFILES) $(DOCS)
 
 bananas: bundle
 	echo "[BaNaNaS]"
-	sed -e 's/^version *=.*/version = $(REPO_VERSION)/' $(BANANAS_INI) > "$(BUNDLE_DIR)/$(BANANAS_INI)"
+	sed -e 's/^version *=.*/version = $(REPO_TAG)/' $(BANANAS_INI) > "$(BUNDLE_DIR)/$(BANANAS_INI)"
 	$(MUSA) -r -x license.txt -c $(BUNDLE_DIR)/$(BANANAS_INI) "$(BUNDLE_DIR)/$(BUNDLE_FILENAME)"
 
