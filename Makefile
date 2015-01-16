@@ -51,13 +51,13 @@ $(BUNDLE_DIR)/$(BUNDLE_FILENAME).tar: $(SOURCES) $(LANGFILES) $(DOCS)
 	mkdir -p "$(BUNDLE_DIR)/$(BUNDLE_FILENAME)/lang"
 	cp $(SOURCES) $(DOCS) "$(BUNDLE_DIR)/$(BUNDLE_FILENAME)"
 	cp $(LANGFILES) "$(BUNDLE_DIR)/$(BUNDLE_FILENAME)/lang"
-	sed -i 's/^PROGRAM_VERSION.*/PROGRAM_VERSION <- $(REPO_VERSION);/' "$(BUNDLE_DIR)/$(BUNDLE_FILENAME)/info.nut"
-	sed -i 's/^PROGRAM_DATE.*/PROGRAM_DATE <- "$(REPO_DATE)";/' "$(BUNDLE_DIR)/$(BUNDLE_FILENAME)/info.nut"
-	sed -i 's/^PROGRAM_NAME.*/PROGRAM_NAME <- "$(DISPLAY_NAME)";/' "$(BUNDLE_DIR)/$(BUNDLE_FILENAME)/info.nut"
+	sed -e 's/^PROGRAM_VERSION.*/PROGRAM_VERSION <- $(REPO_VERSION);/' \
+	    -e 's/^PROGRAM_DATE.*/PROGRAM_DATE <- "$(REPO_DATE)";/' \
+	    -e 's/^PROGRAM_NAME.*/PROGRAM_NAME <- "$(DISPLAY_NAME)";/' < info.nut > "$(BUNDLE_DIR)/$(BUNDLE_FILENAME)/info.nut"
 	cd $(BUNDLE_DIR); tar -cf "$(BUNDLE_FILENAME).tar" "$(BUNDLE_FILENAME)"
 
 bananas: bundle
 	echo "[BaNaNaS]"
-	sed 's/^version *=.*/version = $(REPO_VERSION)/' $(BANANAS_INI) > "$(BUNDLE_DIR)/$(BANANAS_INI)"
+	sed -e 's/^version *=.*/version = $(REPO_VERSION)/' $(BANANAS_INI) > "$(BUNDLE_DIR)/$(BANANAS_INI)"
 	$(MUSA) -r -x license.txt -c $(BUNDLE_DIR)/$(BANANAS_INI) "$(BUNDLE_DIR)/$(BUNDLE_FILENAME)"
 
