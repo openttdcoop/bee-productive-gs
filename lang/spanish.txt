@@ -1,0 +1,6 @@
+##plural 0
+
+STR_COMPANY_GOAL            :Entrega {GOLD}{CARGO_LONG} {ORANGE}a {STRING}
+STR_PROGRESS                :{YELLOW}{NUM}% {ORANGE}hecho
+STR_COMPANY_GOAL_WON_NEWS   :¡Meta conseguida! {CARGO_LONG} entregado a {STRING}
+STR_INDUSTRY_NAME           :{YELLOW}{INDUSTRY}

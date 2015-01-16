@@ -1,0 +1,13 @@
+##plural 6
+
+STR_COMPANY_GOAL            :Dostavite {GOLD}{CARGO_LONG} {ORANGE}do {STRING}
+STR_COMPANY_GOAL_NEWS       :Novi cilj! Dostavite {CARGO_LONG} do {STRING}
+STR_PROGRESS                :{YELLOW}{NUM}% {ORANGE}završeno
+STR_COMPANY_GOAL_WON_NEWS   :Cilj postignut! {CARGO_LONG} dostavljeno do {STRING}
+STR_TIMEOUT_YEARS           :{GOLD}{NUM} {ORANGE}godin{P a e e} ostaje
+STR_TIMEOUT_MONTHS          :{GOLD}{NUM} {ORANGE}mjesec{P "" a i} ostaje
+STR_TIMEOUT_DAYS            :{GOLD}{NUM} {ORANGE}dan{P "" a a} ostaje
+STR_TOWN_NAME               :{WHITE}{TOWN}
+STR_TOWN_NAME_NEWS          :{TOWN}
+STR_INDUSTRY_NAME           :{YELLOW}{INDUSTRY}
+STR_INDUSTRY_NAME_NEWS      :{INDUSTRY}
