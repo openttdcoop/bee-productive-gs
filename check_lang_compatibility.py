@@ -58,8 +58,12 @@ def get_langfile_rev(name, rev):
     @return: Lines wit string names.
     @rtype:  C{list} of C{str}
     """
+    # Copy the environment, and add HGPLAIN
+    env = dict(kv for kv in os.environ.items())
+    env['HGPLAIN'] = ''
+
     cmd = ['hg', 'cat', '-r', rev, name]
-    txt = subprocess.check_output(cmd, universal_newlines=True, env={'HGPLAIN':''})
+    txt = subprocess.check_output(cmd, universal_newlines=True, env=env)
 
     lines = []
     for line in txt.split('\n'):
