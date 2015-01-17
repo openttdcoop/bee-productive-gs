@@ -1,0 +1,13 @@
+##plural 0
+
+STR_COMPANY_GOAL            :Leverera {GOLD}{CARGO_LONG} {ORANGE}till {STRING}
+STR_COMPANY_GOAL_NEWS       :Nytt mål! Leverera {CARGO_LONG} till {STRING}
+STR_PROGRESS                :{YELLOW}{NUM}% {ORANGE}klart
+STR_COMPANY_GOAL_WON_NEWS   :Mål slutfört! {CARGO_LONG} levererades till {STRING}
+STR_TIMEOUT_YEARS           :{GOLD}{NUM} {ORANGE}år återstår
+STR_TIMEOUT_MONTHS          :{GOLD}{NUM} {ORANGE}månad{P "" er} återstår
+STR_TIMEOUT_DAYS            :{GOLD}{NUM} {ORANGE}dag{P "" ar} återstår
+STR_TOWN_NAME               :{WHITE}{TOWN}
+STR_TOWN_NAME_NEWS          :{TOWN}
+STR_INDUSTRY_NAME           :{YELLOW}{INDUSTRY}
+STR_INDUSTRY_NAME_NEWS      :{INDUSTRY}
