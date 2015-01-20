@@ -57,6 +57,12 @@ $(BUNDLE_DIR)/$(BUNDLE_FILENAME).tar: $(SOURCES) $(LANGFILES) $(DOCS)
 	    -e 's/^PROGRAM_NAME.*/PROGRAM_NAME <- "$(DISPLAY_NAME)";/' < info.nut > "$(BUNDLE_DIR)/$(BUNDLE_FILENAME)/info.nut"
 	cd $(BUNDLE_DIR); tar -cf "$(BUNDLE_FILENAME).tar" "$(BUNDLE_FILENAME)"
 
+bundle_zip bundle_src: $(BUNDLE_DIR)/$(BUNDLE_FILENAME).tar.zip
+$(BUNDLE_DIR)/$(BUNDLE_FILENAME).tar.zip: $(BUNDLE_DIR)/$(BUNDLE_FILENAME).tar
+	echo "[BUNDLE] $@"
+	cd $(BUNDLE_DIR)
+	zip -9rq $@ $<
+
 bananas: bundle
 	echo "[BaNaNaS]"
 	sed -e 's/^version *=.*/version = $(REPO_TAG)/' $(BANANAS_INI) > "$(BUNDLE_DIR)/$(BANANAS_INI)"
