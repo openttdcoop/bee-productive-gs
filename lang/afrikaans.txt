@@ -4,7 +4,7 @@ STR_COMPANY_GOAL            :Lewer {GOLD}{CARGO_LONG} {ORANGE}aan {STRING}
 STR_COMPANY_GOAL_NEWS       :Nuwe doel! Lewer {CARGO_LONG} by {STRING} af
 STR_PROGRESS                :{YELLOW}{NUM}% {ORANGE}gedoen
 STR_COMPANY_GOAL_WON_NEWS   :Doel bereik! {CARGO_LONG} afgelewer by {STRING}
-STR_TIMEOUT_YEARS           :{GOLD}{NUM} {ORANGE}ja{P ar re} oorblywend
+STR_TIMEOUT_YEARS           :{GOLD}{NUM} {ORANGE}jaar{P "" ""} oorblywend
 STR_TIMEOUT_MONTHS          :{GOLD}{NUM} {ORANGE}maand{P "" e} oorblywend
 STR_TIMEOUT_DAYS            :{GOLD}{NUM} {ORANGE}da{P g e} oorblywend
 STR_TOWN_NAME               :{WHITE}{TOWN}
