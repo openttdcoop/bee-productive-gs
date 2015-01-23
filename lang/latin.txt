@@ -1,0 +1,9 @@
+##plural 0
+
+STR_TIMEOUT_YEARS           :{GOLD}{NUM} {ORANGE}ann{P us i} reliqu{P us i}
+STR_TIMEOUT_MONTHS          :{GOLD}{NUM} {ORANGE}mens{P is es} reliqu{P us i}
+STR_TIMEOUT_DAYS            :{GOLD}{NUM} {ORANGE}dies reliqu{P us i}
+STR_TOWN_NAME               :{WHITE}{TOWN}
+STR_TOWN_NAME_NEWS          :{TOWN}
+STR_INDUSTRY_NAME           :{YELLOW}{INDUSTRY}
+STR_INDUSTRY_NAME_NEWS      :{INDUSTRY}
