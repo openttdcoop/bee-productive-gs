@@ -1,5 +1,9 @@
 ##plural 0
 
+STR_COMPANY_GOAL            :Trade {GOLD}{CARGO_LONG} {ORANGE}ad {STRING}
+STR_COMPANY_GOAL_NEWS       :Meta nova! Trade {CARGO_LONG} ad {STRING}
+STR_PROGRESS                :{YELLOW}{NUM}% {ORANGE}tradita
+STR_COMPANY_GOAL_WON_NEWS   :Vicisti! {CARGO_LONG} tradita est ad {STRING}
 STR_TIMEOUT_YEARS           :{GOLD}{NUM} {ORANGE}ann{P us i} reliqu{P us i}
 STR_TIMEOUT_MONTHS          :{GOLD}{NUM} {ORANGE}mens{P is es} reliqu{P us i}
 STR_TIMEOUT_DAYS            :{GOLD}{NUM} {ORANGE}dies reliqu{P us i}

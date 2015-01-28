@@ -1,0 +1,13 @@
+##plural 11
+
+STR_COMPANY_GOAL            : {GOLD}{CARGO_LONG}을  {ORANGE} {STRING}까지 배달하세요
+STR_COMPANY_GOAL_NEWS       :새로운 목표! {CARGO_LONG}을  {STRING}로 수송하세요
+STR_PROGRESS                :{YELLOW}{NUM}% {ORANGE}완료됨
+STR_COMPANY_GOAL_WON_NEWS   :목표 달성! {CARGO_LONG} 만큼 {STRING}으로 배달됨
+STR_TIMEOUT_YEARS           :{GOLD}{NUM} {ORANGE}년 남음
+STR_TIMEOUT_MONTHS          :{GOLD}{NUM} {ORANGE}달 남음
+STR_TIMEOUT_DAYS            :{GOLD}{NUM} {ORANGE}일 남음
+STR_TOWN_NAME               :{WHITE}{TOWN}
+STR_TOWN_NAME_NEWS          :{TOWN}
+STR_INDUSTRY_NAME           :{YELLOW}{INDUSTRY}
+STR_INDUSTRY_NAME_NEWS      :{INDUSTRY}
