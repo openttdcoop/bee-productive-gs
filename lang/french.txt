@@ -1,0 +1,13 @@
+##plural 2
+
+STR_COMPANY_GOAL            :Livrer {GOLD}{CARGO_LONG} {ORANGE}à {STRING}
+STR_COMPANY_GOAL_NEWS       :Nouvelle mission{NBSP}! Livrer {CARGO_LONG} à {STRING}
+STR_PROGRESS                :{YELLOW}{NUM}% {ORANGE}effectué
+STR_COMPANY_GOAL_WON_NEWS   :But atteint{NBSP}! {CARGO_LONG} ont atteint {STRING}
+STR_TIMEOUT_YEARS           :{GOLD}{NUM} {ORANGE}an{P "" s} restant{P "" s}
+STR_TIMEOUT_MONTHS          :{GOLD}{NUM} {ORANGE}mois restant{P "" s}
+STR_TIMEOUT_DAYS            :{GOLD}{NUM} {ORANGE}jour{P "" s} restant{P "" s}
+STR_TOWN_NAME               :{WHITE}{TOWN}
+STR_TOWN_NAME_NEWS          :{TOWN}
+STR_INDUSTRY_NAME           :{YELLOW}{INDUSTRY}
+STR_INDUSTRY_NAME_NEWS      :{INDUSTRY}
