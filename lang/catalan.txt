@@ -1,0 +1,12 @@
+##plural 0
+
+STR_COMPANY_GOAL            :Envia {GOLD}{CARGO_LONG} {ORANGE}a {STRING}
+STR_COMPANY_GOAL_NEWS       :Nou objectiu! Envia {CARGO_LONG} a {STRING}
+STR_PROGRESS                :{YELLOW}{NUM}% {ORANGE}fet
+STR_TIMEOUT_YEARS           :{GOLD}{NUM} {ORANGE}any{P "" s} restant{P "" s}
+STR_TIMEOUT_MONTHS          :{GOLD}{NUM} {ORANGE}mes{P "" os} restant{P "" s}
+STR_TIMEOUT_DAYS            :{GOLD}{NUM} {ORANGE}di{P a es} restant{P "" s}
+STR_TOWN_NAME               :{WHITE}{TOWN}
+STR_TOWN_NAME_NEWS          :{TOWN}
+STR_INDUSTRY_NAME           :{YELLOW}{INDUSTRY}
+STR_INDUSTRY_NAME_NEWS      :{INDUSTRY}
