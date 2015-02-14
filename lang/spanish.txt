@@ -4,8 +4,10 @@ STR_COMPANY_GOAL            :Entrega {GOLD}{CARGO_LONG} {ORANGE}a {STRING}
 STR_COMPANY_GOAL_NEWS       :¡Nueva meta! Entrega {CARGO_LONG} a {STRING}
 STR_PROGRESS                :{YELLOW}{NUM}% {ORANGE}hecho
 STR_COMPANY_GOAL_WON_NEWS   :¡Meta conseguida! {CARGO_LONG} entregado a {STRING}
+STR_TIMEOUT_YEARS           :{ORANGE}Quedan {GOLD}{NUM} {ORANGE}año{P "" s}
 STR_TIMEOUT_MONTHS          :{ORANGE}Quedan {GOLD}{NUM} {ORANGE}mes{P "" es}
 STR_TIMEOUT_DAYS            :{ORANGE}Quedan {GOLD}{NUM} {ORANGE}día{P "" s}
 STR_TOWN_NAME               :{WHITE}{TOWN}
+STR_TOWN_NAME_NEWS          :{TOWN}
 STR_INDUSTRY_NAME           :{YELLOW}{INDUSTRY}
 STR_INDUSTRY_NAME_NEWS      :{INDUSTRY}
