@@ -1,12 +1,12 @@
 ##plural 0
 
 STR_COMPANY_GOAL            :Consegnare {GOLD}{CARGO_LONG} {ORANGE}a {STRING}
-STR_COMPANY_GOAL_NEWS       :Obiettivo nuovo! Consegnare {CARGO_LONG} a {STRING}
-STR_PROGRESS                :{YELLOW}{NUM}% {ORANGE}finito
-STR_COMPANY_GOAL_WON_NEWS   :Obiettivo vinto! {CARGO_LONG} consegnato a {STRING}
-STR_TIMEOUT_YEARS           :{GOLD}{NUM} {ORANGE}ann{P o i} rimangono
-STR_TIMEOUT_MONTHS          :{GOLD}{NUM} {ORANGE}mes{P e i} rimangono
-STR_TIMEOUT_DAYS            :{GOLD}{NUM} {ORANGE}giorn{P o i} rimangono
+STR_COMPANY_GOAL_NEWS       :Nuovo obiettivo! Consegnare {CARGO_LONG} a {STRING}
+STR_PROGRESS                :{YELLOW}{NUM}% {ORANGE}completato
+STR_COMPANY_GOAL_WON_NEWS   :Obiettivo raggiunto! Consegna di {CARGO_LONG} effettuata a {STRING}
+STR_TIMEOUT_YEARS           :{GOLD}{NUM} {ORANGE}ann{P o i} rimanent{P e i}
+STR_TIMEOUT_MONTHS          :{GOLD}{NUM} {ORANGE}mes{P e i} rimanent{P e i}
+STR_TIMEOUT_DAYS            :{GOLD}{NUM} {ORANGE}giorn{P o i} rimanent{P e i}
 STR_TOWN_NAME               :{WHITE}{TOWN}
 STR_TOWN_NAME_NEWS          :{TOWN}
 STR_INDUSTRY_NAME           :{YELLOW}{INDUSTRY}

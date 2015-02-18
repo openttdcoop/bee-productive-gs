@@ -1,0 +1,13 @@
+##plural 1
+
+STR_COMPANY_GOAL            :Antarkan {GOLD}{CARGO_LONG} {ORANGE}ke {STRING}
+STR_COMPANY_GOAL_NEWS       :Target baru! Antarkan {CARGO_LONG} ke {STRING}
+STR_PROGRESS                :{YELLOW}{NUM}% {ORANGE}selesai
+STR_COMPANY_GOAL_WON_NEWS   :Target tercapai! {CARGO_LONG} diantarkan ke {STRING}
+STR_TIMEOUT_YEARS           :{GOLD}{NUM} {ORANGE}tahun tersisa
+STR_TIMEOUT_MONTHS          :{GOLD}{NUM} {ORANGE}bulan tersisa
+STR_TIMEOUT_DAYS            :{GOLD}{NUM} {ORANGE}hari tersisa
+STR_TOWN_NAME               :{WHITE}{TOWN}
+STR_TOWN_NAME_NEWS          :{TOWN}
+STR_INDUSTRY_NAME           :{YELLOW}{INDUSTRY}
+STR_INDUSTRY_NAME_NEWS      :{INDUSTRY}
