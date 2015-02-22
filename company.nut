@@ -66,7 +66,7 @@ class CompanyGoal {
             this.goal_id = GSGoal.New(comp_id, goal_text, goal_type, destination);
             local goal_news_text = GSText(GSText.STR_COMPANY_GOAL_NEWS, cargo.cid,
                                      this.wanted_amount, destination_string_news);
-            GSNews.Create(GSNews.NT_GENERAL, goal_news_text, comp_id);
+            this.PublishNews(goal_news_text, comp_id);
         }
     }
 
@@ -75,6 +75,7 @@ class CompanyGoal {
     function UpdateTimeout(step);
     function CheckFinished();
     function FinalizeGoal();
+    function PublishNews(str, comp_id);
 
     function SaveGoal();
     static function LoadGoal(num, loaded_data);
@@ -139,13 +140,13 @@ function CompanyGoal::UpdateDelivered(mon, comp_id)
                 GSGoal.SetCompleted(this.goal_id, true);
                 local destination_string_news;
                 if ("town" in this.accept) {
-                    destination_string_news = GSText(GSText.STR_TOWN_NAME_NEWS, accept.town);
+                    destination_string_news = GSText(GSText.STR_TOWN_NAME_NEWS, this.accept.town);
                 } else {
-                    destination_string_news = GSText(GSText.STR_INDUSTRY_NAME_NEWS, accept.ind);
+                    destination_string_news = GSText(GSText.STR_INDUSTRY_NAME_NEWS, this.accept.ind);
                 }
                 local goal_won_news = GSText(GSText.STR_COMPANY_GOAL_WON_NEWS, cargo.cid,
                                          this.wanted_amount, destination_string_news);
-                GSNews.Create(GSNews.NT_GENERAL, goal_won_news, comp_id);
+                this.PublishNews(goal_won_news, comp_id);
             } else {
                 perc = 100 * this.delivered_amount / this.wanted_amount;
                 if (perc > 100) perc = 100;
@@ -273,6 +274,37 @@ function CompanyGoal::FinalizeGoal()
 {
     if (this.goal_id != null) GSGoal.Remove(this.goal_id);
 }
+
+// Publish a news item about the goal.
+// @param news_text String with text to publish.
+// @param comp_id Company owning the goal.
+function CompanyGoal::PublishNews(news_text, comp_id)
+{
+    const RELEASED_MASK = 0x80000; // 1 << 19;
+    const RELEASE_START_BIT = 20;
+    const NIGHTLY_MASK = 0x7FFFF;  // RELEASED_MASK - 1;
+
+    local version = GSController.GetVersion();
+    local add_position = false;
+    if ((version & RELEASED_MASK) == RELEASED_MASK) {
+        add_position = (version >> RELEASE_START_BIT) >= (1 << 8) + (5 << 4); // 1.5.0 release or later.
+    } else {
+        add_position = (version & NIGHTLY_MASK) >= (27164 & NIGHTLY_MASK); // nightly >= r27164.
+    }
+    if (add_position) {
+        if ("town" in this.accept) {
+            GSNews.Create(GSNews.NT_GENERAL, news_text, comp_id, GSNews.NR_TOWN, this.accept.town);
+        } else {
+            GSNews.Create(GSNews.NT_GENERAL, news_text, comp_id, GSNews.NR_INDUSTRY, this.accept.ind);
+        }
+    } else {
+        // 1.4, or nightly < 27156, no position information.
+        GSNews.Create(GSNews.NT_GENERAL, news_text, comp_id);
+    }
+}
+
+// ************************************************************************
+// ************************************************************************
 
 class CompanyData {
     comp_id = null;
