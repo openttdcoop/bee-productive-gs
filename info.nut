@@ -17,8 +17,8 @@
  * Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-SAVEGAME_VERSION <- 1; // Set manually if/when save games break.
-MINCOMPATIBLE_SAVEGAME_VERSION <- 1; // cset: 06b75370997d
+SAVEGAME_VERSION <- 2; // Set manually if/when save games break.
+MINCOMPATIBLE_SAVEGAME_VERSION <- 2; // cset: bf1430b223d5df73a0c6ba9c996594a77d497cf1
 
 PROGRAM_VERSION <- Syntax error, set by 'make bundle'.
 PROGRAM_DATE <- Syntax error, set by 'make bundle'.
@@ -26,7 +26,7 @@ PROGRAM_NAME <- Syntax error, set by 'make bundle'.
 
 class BusyBeeInfo extends GSInfo {
     function GetAuthor()        { return "alberth & andythenorth"; }
-    function GetName()          { return PROGRAM_NAME; }
+    function GetName()          { return "Busy Bee"; } // Old: return PROGRAM_NAME;
     function GetDescription()   { return "Make connection, transport cargo"; }
     function GetVersion()       { return PROGRAM_VERSION + SAVEGAME_VERSION * 100000; }
     function GetDate()          { return PROGRAM_DATE; }
