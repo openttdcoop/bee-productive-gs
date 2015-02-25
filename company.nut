@@ -63,7 +63,7 @@ class CompanyGoal {
         }
     }
 
-    function GetTimeoutDays();
+    function ResetTimeout();
     function AddMonitorElement(mon);
     function UpdateDelivered(mon, comp_id);
     function UpdateTimeout(step);
