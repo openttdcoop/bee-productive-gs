@@ -38,14 +38,7 @@ class CompanyGoal {
         this.cargo = cargo;
         this.accept = accept;
         this.wanted_amount = wanted_amount;
-
-        local years = GSController.GetSetting("wait_years");
-        this.timeout = years * 365 * 74;
-        while (years >= 4) {
-            this.timeout += 74; // Add one day for every 4 years.
-            years -= 4;
-        }
-        if (years >= 2) this.timeout += 74 / 2; // And 1/2 a day for 2 years.
+        this.ResetTimeout();
 
         // Construct goal if a company id was provided.
         if (comp_id != null) {
@@ -70,6 +63,7 @@ class CompanyGoal {
         }
     }
 
+    function GetTimeoutDays();
     function AddMonitorElement(mon);
     function UpdateDelivered(mon, comp_id);
     function UpdateTimeout(step);
@@ -80,6 +74,18 @@ class CompanyGoal {
     function SaveGoal();
     static function LoadGoal(num, loaded_data);
 };
+
+// Reset the timeout of the goal.
+function CompanyGoal::ResetTimeout()
+{
+    local years = GSController.GetSetting("wait_years");
+    this.timeout = years * 365 * 74;
+    while (years >= 4) {
+        this.timeout += 74; // Add one day for every 4 years.
+        years -= 4;
+    }
+    if (years >= 2) this.timeout += 74 / 2; // And 1/2 a day for 2 years.
+}
 
 function CompanyGoal::SaveGoal()
 {
@@ -133,6 +139,7 @@ function CompanyGoal::UpdateDelivered(mon, comp_id)
 
     if (delivered > 0) {
         this.delivered_amount += delivered;
+        this.ResetTimeout();
         if (this.goal_id != null) {
             local perc;
             if (this.delivered_amount >= this.wanted_amount) {
