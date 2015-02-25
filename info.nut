@@ -58,6 +58,33 @@ function BusyBeeInfo::GetSettings()
                        hard_value=3,
                        custom_value=7,
                        flags=GSInfo.CONFIG_INGAME});
+    GSInfo.AddSetting({name="pass_weight",
+                       description="Likelihood of selecting passengers as goal",
+                       min_value=1,
+                       max_value=20,
+                       easy_value=1,
+                       medium_value=1,
+                       hard_value=1,
+                       custom_value=1,
+                       flags=GSInfo.CONFIG_INGAME});
+    GSInfo.AddSetting({name="mail_weight",
+                       description="Likelihood of selecting mail as goal",
+                       min_value=1,
+                       max_value=20,
+                       easy_value=1,
+                       medium_value=1,
+                       hard_value=1,
+                       custom_value=1,
+                       flags=GSInfo.CONFIG_INGAME});
+    GSInfo.AddSetting({name="town_weight",
+                       description="Likelihood of selecting other town cargoes as goal",
+                       min_value=1,
+                       max_value=20,
+                       easy_value=1,
+                       medium_value=1,
+                       hard_value=1,
+                       custom_value=1,
+                       flags=GSInfo.CONFIG_INGAME});
 }
 
 RegisterGS(BusyBeeInfo());

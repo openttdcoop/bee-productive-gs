@@ -25,7 +25,8 @@ class Cargo
     index   = null; ///< Index of the cargo in the cargo table (#BusyBeeClass.cargoes).
     cid     = null; ///< Id of the cargo in GRF.
     freight = null; ///< Whether the cargo is considered to be freight.
-    effect  = null; ///< Town effect (One of #GSCargo.TownEffect)
+    effect  = null; ///< Town effect (One of #GSCargo.TownEffect).
+    weight  = null; ///< Likelihood of picking this cargo for making a goal.
 
     constructor(index, cid, freight, effect)
     {
@@ -33,14 +34,30 @@ class Cargo
         this.cid = cid;
         this.freight = freight;
         this.effect = effect;
+        this.weight = this.GetWeight(effect);
     }
+
+    function GetWeight();
 }
 
+// Get the weight of the cargo (probability of selecting it).
+// @param effect Town effect of the cargo.
+function Cargo::GetWeight(effect)
+{
+    if (effect == GSCargo.TE_PASSENGERS) return GSController.GetSetting("pass_weight");
+    if (effect == GSCargo.TE_MAIL)       return GSController.GetSetting("mail_weight");
+    if (effect != GSCargo.TE_NONE)       return GSController.GetSetting("town_weight");
+    return 1;
+}
+
+// ************************************************************************
+// ************************************************************************
 
 class BusyBeeClass extends GSController
 {
-    cargoes = null; // Cargoes of the game (index -> 'cid' number, 'freight' boolean, 'effect' on town).
-    num_cargoes = 0;
+    cargoes = null;  ///< Cargoes of the game (index -> 'cid' number, 'freight' boolean, 'effect' on town).
+    num_cargoes = 0; ///< Number of cargoes in 'this.cargoes'.
+    sum_weight = 0;  ///< Total sum of the weights of the cargoes.
 
     companies = null;
 
@@ -80,6 +97,7 @@ function BusyBeeClass::Initialize()
     // Examine and store cargo types of the game.
     this.cargoes = {};
     this.num_cargoes = 0;
+    this.sum_weight = 0;
 
     for (local cid = 0; cid < 32; cid += 1) {
         if (!GSCargo.IsValidCargo(cid)) continue;
@@ -87,6 +105,7 @@ function BusyBeeClass::Initialize()
         local cargo = Cargo(this.num_cargoes, cid, GSCargo.IsFreight(cid),  GSCargo.GetTownEffect(cid));
         this.cargoes[this.num_cargoes] <- cargo;
         this.num_cargoes += 1;
+        this.sum_weight += cargo.weight;
     }
 
     // Construct empty companies.
@@ -245,13 +264,31 @@ function BusyBeeClass::FindChallenge(cargo_index, distance, comp_id)
     return best_accept;
 }
 
+// Select the next cargo to use for a goal.
+// @return The index of the cargo to use in this.cargoes.
+function BusyBeeClass::SelectCargo()
+{
+    local remaining = GSBase.RandRange(this.sum_weight);
+    local cargo_index = 0;
+    foreach (cargo in this.cargoes) {
+        GSLog.Info("sum_weight=" + this.sum_weight + ", remain=" + remaining + ", weight=" + cargo.weight +
+                   "index=" + cargo_index);
+        if (remaining < cargo.weight) return cargo_index;
+        remaining -= cargo.weight;
+        cargo_index += 1;
+    }
+    return -1; // Should never be reached.
+}
+
 // Try to add a goal for a company.
 // @param comp_id Company to find a challenge for.
 function BusyBeeClass::CreateChallenge(comp_id)
 {
     local cdata = this.companies[comp_id];
     for (local attempt = 0;attempt < 20; attempt += 1) {
-        local cargo_index = GSBase.RandRange(this.num_cargoes);
+        local cargo_index = this.SelectCargo();
+        if (cargo_index < 0) continue;
+
         local cargo = this.cargoes[cargo_index];
         if (cdata.GetNumberOfGoalsForCargo(cargo.cid) > 1) continue; // Already 2 goals for this cargo.
         local distance = GSBase.RandRange(200) + 50; // Distance 50 .. 250 tiles.
