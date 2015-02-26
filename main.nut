@@ -271,8 +271,6 @@ function BusyBeeClass::SelectCargo()
     local remaining = GSBase.RandRange(this.sum_weight);
     local cargo_index = 0;
     foreach (cargo in this.cargoes) {
-        GSLog.Info("sum_weight=" + this.sum_weight + ", remain=" + remaining + ", weight=" + cargo.weight +
-                   "index=" + cargo_index);
         if (remaining < cargo.weight) return cargo_index;
         remaining -= cargo.weight;
         cargo_index += 1;
