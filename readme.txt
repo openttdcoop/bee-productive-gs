@@ -28,9 +28,39 @@ created (may take a while) for you to fulfill.
 
 You don't get anything when you fulfill the goal. There is also no penalty for
 failing to achieve a goal. The purpose of the timer is to get rid of obsolete
-or unreachable goals. (For example, the last oil wells disappeared from the map
-before you could finish the oil goal.) You can increase the length of the timer
-with a parameter.
+or unreachable goals. Since the timer is reset when new cargo is detected, you
+can take as long as you like to complete the goal, as long as you deliver
+something regularly.
+
+
+Features
+========
+
+Busy Bee RC2
+ - Clickable news (with sufficiently new OpenTTD).
+ - Goal timer gets reset to its original length on delivery of cargo.
+ - Added options to set the weight of passengers, mail, or town-effect cargoes,
+   to give them a higher chance of being picked as goal.
+
+Busy Bee RC1
+ - Initial release
+
+Translations
+============
+We thank the following people for their contributed translations:
+
+    Afrikaans:  telanus
+    Catalan:    juanjo
+    Croatian:   Voyager1
+    French:     arikover
+    German:     frosch
+    Indonesian: UseYourIllusion
+    Italian:    Snail, Voyager1
+    Korean:     kevin
+    Latin:      Supercheese
+    Spanish:    SilverSurferZzZ
+    Swedish:    Zuu
+
 
 License
 =======
