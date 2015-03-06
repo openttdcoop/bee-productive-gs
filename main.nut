@@ -283,6 +283,7 @@ function BusyBeeClass::SelectCargo()
 function BusyBeeClass::CreateChallenge(comp_id)
 {
     local cdata = this.companies[comp_id];
+    local cargomp = GSController.GetSetting("cargo_mp");
     for (local attempt = 0;attempt < 20; attempt += 1) {
         local cargo_index = this.SelectCargo();
         if (cargo_index < 0) continue;
@@ -301,7 +302,7 @@ function BusyBeeClass::CreateChallenge(comp_id)
                 amount = 10 * 25 + 35 * 50 + (amount - 10 - 35) * 100; // 2000..7500
             }
             if (cdata != null) {
-                cdata.AddActiveGoal(cargo, accept, amount);
+                cdata.AddActiveGoal(cargo, accept, amount * cargomp / 100);
 
                 local dest_name;
                 if ("town" in accept) {
