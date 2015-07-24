@@ -506,14 +506,28 @@ function CompanyData::UpdateTimeout(step)
 }
 
 // Test whether goals of the company are 'done', and if so, drop them.
+// return array of tables with details about completed goal:
+//  {
+//     cargo: goal.cargo
+//     accept: goal.accept
+//  }
 function CompanyData::CheckAndFinishGoals()
 {
+	local result = [];
     foreach (num, goal in this.active_goals) {
         if (goal == null) continue;
         if (goal.CheckFinished()) {
             goal.FinalizeGoal();
             this.active_goals[num] = null;
+			if (goal.delivered_amount >= goal.wanted_amount) {
+				result.append({
+					cargo = goal.cargo,
+					accept = goal.accept,
+				});
+			}
         }
     }
+
+	return result;
 }
 

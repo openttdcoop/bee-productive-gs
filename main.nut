@@ -1,18 +1,18 @@
 /*
- * This file is part of BusyBee, which is a GameScript for OpenTTD
+ * This file is part of BeeProductive, which is a fork of BusyBee game script for OpenTTD
  * Copyright (C) 2014-2015  alberth / andythenorth
  *
- * BusyBee is free software; you can redistribute it and/or modify it
+ * BeeProductive is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by
  * the Free Software Foundation; version 2 of the License
  *
- * BusyBee is distributed in the hope that it will be useful,
+ * BeeProductive is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with BusyBee; If not, see <http://www.gnu.org/licenses/> or
+ * along with BeeProductive; If not, see <http://www.gnu.org/licenses/> or
  * write to the Free Software Foundation, Inc., 51 Franklin Street,
  * Fifth Floor, Boston, MA 02110-1301 USA.
  */
@@ -22,7 +22,7 @@ require("company.nut");
 // Cargo description.
 class Cargo
 {
-    index   = null; ///< Index of the cargo in the cargo table (#BusyBeeClass.cargoes).
+    index   = null; ///< Index of the cargo in the cargo table (#BeeProductiveClass.cargoes).
     cid     = null; ///< Id of the cargo in GRF.
     freight = null; ///< Whether the cargo is considered to be freight.
     effect  = null; ///< Town effect (One of #GSCargo.TownEffect).
@@ -53,13 +53,14 @@ function Cargo::GetWeight(effect)
 // ************************************************************************
 // ************************************************************************
 
-class BusyBeeClass extends GSController
+class BeeProductiveClass extends GSController
 {
     cargoes = null;  ///< Cargoes of the game (index -> 'cid' number, 'freight' boolean, 'effect' on town).
     num_cargoes = 0; ///< Number of cargoes in 'this.cargoes'.
     sum_weight = 0;  ///< Total sum of the weights of the cargoes.
 
     companies = null;
+	industries = null; ///< Industries of the game (industry id -> 'id', 'tile', 'level'). Absent industries are at level 0.
 
     loaded = false;
 
@@ -68,29 +69,37 @@ class BusyBeeClass extends GSController
     function Start();
 }
 
-function BusyBeeClass::Load(version, data)
+function BeeProductiveClass::Load(version, data)
 {
     this.loaded = true;
     this.Initialize();
 
-    foreach (comp_id, loaded_comp_data in data) {
-        local cdata = CompanyData.LoadCompany(comp_id, loaded_comp_data, this.cargoes);
-        this.companies[comp_id] = cdata;
-    }
+	if (data.rawin("companies")) {
+		foreach (comp_id, loaded_comp_data in data.companies) {
+			local cdata = CompanyData.LoadCompany(comp_id, loaded_comp_data, this.cargoes);
+			this.companies[comp_id] = cdata;
+		}
+	}
+	if (data.rawin("industries")) {
+		this.industries = data.industries;
+	}
 }
 
-function BusyBeeClass::Save()
+function BeeProductiveClass::Save()
 {
-    local result = {};
+    local result = {
+		companies = {},
+		industries = this.industries,
+	};
     foreach (comp_id, cdata in this.companies) {
         if (cdata == null) continue;
-        result[comp_id] <- cdata.SaveCompany();
+        result.companies[comp_id] <- cdata.SaveCompany();
     }
     return result;
 }
 
 // Initialize core data of the script.
-function BusyBeeClass::Initialize()
+function BeeProductiveClass::Initialize()
 {
     if (this.companies != null) return; // Already initialized.
 
@@ -113,13 +122,16 @@ function BusyBeeClass::Initialize()
     for (local comp_id = GSCompany.COMPANY_FIRST; comp_id <= GSCompany.COMPANY_LAST; comp_id++) {
         this.companies[comp_id] <- null;
     }
+
+	// Industries at level 0 is not stored.
+	this.industries = {};
 }
 
 // Find cargo sources.
 // @param cargo_index Cargo index (index in this.cargoes).
 // @return List of resources that produce the requested cargo, list of
 //      'ind' or 'town' number, 'prod' produced amount, 'transp' transported amount, and 'loc' location.
-function BusyBeeClass::FindSources(cargo_index)
+function BeeProductiveClass::FindSources(cargo_index)
 {
     local cargo = this.cargoes[cargo_index];
     local num_sources = 0;
@@ -167,7 +179,7 @@ function BusyBeeClass::FindSources(cargo_index)
 // @param cargo_index Cargo index (index in this.cargoes).
 // @param company Company to inspect.
 // @return A list of destinations, tables 'ind' or 'town' id, and a 'loc' location.
-function BusyBeeClass::FindDestinations(cargo_index, company)
+function BeeProductiveClass::FindDestinations(cargo_index, company)
 {
     local cargo = this.cargoes[cargo_index];
     local num_dests = 0;
@@ -218,18 +230,18 @@ function BusyBeeClass::FindDestinations(cargo_index, company)
 // @param desired Desired distance.
 // @param actual Actual distance.
 // @return Score for the distance.
-function BusyBeeClass::GetDistanceScore(desired, actual)
+function BeeProductiveClass::GetDistanceScore(desired, actual)
 {
     if (actual < desired) return 1000 - 3 * (desired - actual); // Too close gets punished hard.
     return 1000 - (actual - desired);
 }
 
 // Try to find a challenge for a given cargo and a desired distance.
-// @param cargo_index Index in BusyBeeClass.cargoes.
+// @param cargo_index Index in BeeProductiveClass.cargoes.
 // @param distance Desired distance between source and target.
 // @param comp_id Company to find a challenge for.
 // @return Best accepting industry to use, or 'null' if no industry-pair found.
-function BusyBeeClass::FindChallenge(cargo_index, distance, comp_id)
+function BeeProductiveClass::FindChallenge(cargo_index, distance, comp_id)
 {
     local prods = this.FindSources(cargo_index);
     if (prods.len() == 0) return null;
@@ -266,7 +278,7 @@ function BusyBeeClass::FindChallenge(cargo_index, distance, comp_id)
 
 // Select the next cargo to use for a goal.
 // @return The index of the cargo to use in this.cargoes.
-function BusyBeeClass::SelectCargo()
+function BeeProductiveClass::SelectCargo()
 {
     local remaining = GSBase.RandRange(this.sum_weight);
     local cargo_index = 0;
@@ -280,7 +292,7 @@ function BusyBeeClass::SelectCargo()
 
 // Try to add a goal for a company.
 // @param comp_id Company to find a challenge for.
-function BusyBeeClass::CreateChallenge(comp_id)
+function BeeProductiveClass::CreateChallenge(comp_id)
 {
     local cdata = this.companies[comp_id];
     local cargomp = GSController.GetSetting("cargo_mp");
@@ -320,7 +332,7 @@ function BusyBeeClass::CreateChallenge(comp_id)
 
 // Process events that arrived.
 // @return Table with 'force_goal' bool to force goal updating.
-function BusyBeeClass::ProcessEvents()
+function BeeProductiveClass::ProcessEvents()
 {
     local force_goal = false;
     while (GSEventController.IsEventWaiting()) {
@@ -362,7 +374,7 @@ function BusyBeeClass::ProcessEvents()
 
 // Check if new goals should be created.
 // @return Table with 'more_goals_needed' boolean, and 'force_monitor' to force updating.
-function BusyBeeClass::TryAddNewGoal()
+function BeeProductiveClass::TryAddNewGoal()
 {
     local force_monitor=false;
 
@@ -391,7 +403,7 @@ function BusyBeeClass::TryAddNewGoal()
 // Update progress on existing monitored goals, add monitoring for new goals, and drop monitors for removed goals.
 // @param old_cmon Monitored deliveries (or 'null' if first call).
 // @return Table 'cmon' with the new monitored deliveries, 'finished_goals' boolean when there exist goals that are completed.
-function BusyBeeClass::UpdateDeliveries(old_cmon)
+function BeeProductiveClass::UpdateDeliveries(old_cmon)
 {
     if (old_cmon == null) { // First run, clear any old monitoring.
         GSCargoMonitor.StopAllMonitoring();
@@ -421,7 +433,7 @@ function BusyBeeClass::UpdateDeliveries(old_cmon)
 }
 
 // The script data got loaded from file, check it against the game.
-function BusyBeeClass::CompaniesPostLoadCheck()
+function BeeProductiveClass::CompaniesPostLoadCheck()
 {
     // Check companies.
     for (local comp_id = GSCompany.COMPANY_FIRST; comp_id <= GSCompany.COMPANY_LAST; comp_id++) {
@@ -446,7 +458,7 @@ function BusyBeeClass::CompaniesPostLoadCheck()
     }
 }
 
-function BusyBeeClass::Start()
+function BeeProductiveClass::Start()
 {
     this.Initialize();
     this.Sleep(1); // Wait for the game to start.
@@ -461,6 +473,7 @@ function BusyBeeClass::Start()
     local new_goal_timeout = 0;
     local finished_timeout = 0;
     local monitor_timeout = 0;
+	local ind_prod_timeout = 0;
     while (true) {
         local result = this.ProcessEvents();
         if (result.force_goal) new_goal_timeout = 0;
@@ -490,11 +503,38 @@ function BusyBeeClass::Start()
         if (finished_timeout <= 0) {
             foreach (comp_id, cdata in this.companies) {
                 if (cdata == null) continue;
-                cdata.CheckAndFinishGoals();
+                local completed_goals = cdata.CheckAndFinishGoals();
+
+				foreach (info in completed_goals) {
+					/*
+					if ("town" in info.accept) GSLog.Info("town goal: " + GSTown.GetName(info.accept.town));
+					if ("ind" in info.accept) GSLog.Info("industry goal: " + GSIndustry.GetName(info.accept.ind));
+					GSLog.Info("info.cargo: " + info.cargo);
+					GSLog.Info("info.cargo.cid: " + info.cargo.cid);
+					*/
+					if ("town" in info.accept && GSCargo.GetTownEffect(info.cargo.cid) == GSCargo.TE_MAIL) {
+						// mail was delivered to town
+						// => level up industries of town
+						this.LevelUpTownIndustries(info.accept.town);
+					}
+					if ("ind" in info.accept) {
+						// Level up target industry.
+						this.LevelUpIndustry(info.accept.ind);
+					}
+				}
             }
 
             finished_timeout = 30 * 74; // By default, check for finished goals every 30 days (may be forced by other processes).
         }
+
+		// Update industry production of leveled up industries. Experimental OpenTTD gs->newgrf patch
+		// will reset industries to level 0 upon random production change. So we need to set leveled up
+		// industries often to work around this.
+		if (ind_prod_timeout <= 0) {
+			this.SetAllIndustriesProduction();
+			// timeout: 30 days if no leveled up industries, otherwise 5 days
+			ind_prod_timeout = this.industries.len() == 0 ? 30 * 74 : 5 * 74;
+		}
 
 //        local lake_news = GSText(GSText.STR_LAKE_NEWS);
 //        GSNews.Create(GSNews.NT_GENERAL, lake_news, GSCompany.COMPANY_INVALID);
@@ -505,12 +545,14 @@ function BusyBeeClass::Start()
         if (delay_time > new_goal_timeout)  delay_time = new_goal_timeout;
         if (delay_time > monitor_timeout)   delay_time = monitor_timeout;
         if (delay_time > finished_timeout)  delay_time = finished_timeout;
+        if (delay_time > ind_prod_timeout)  delay_time = ind_prod_timeout;
 
         if (delay_time > 0) this.Sleep(delay_time);
 
         new_goal_timeout  -= delay_time;
         monitor_timeout   -= delay_time;
         finished_timeout  -= delay_time;
+        ind_prod_timeout  -= delay_time;
 
         // Update timeout of the goals as well.
         if (!GSGame.IsPaused()) {
@@ -525,7 +567,7 @@ function BusyBeeClass::Start()
 // Fill company monitors with monitored amounts.
 // @param [inout] cmon Table of 'comp_id' number to 'cargo_id' number to
 //      'ind' and/or 'town' to resource indices to 'null'.
-function BusyBeeClass::FillMonitors(cmon)
+function BeeProductiveClass::FillMonitors(cmon)
 {
     foreach (comp_id, mon in cmon) {
         foreach (cargo_id, rmon in mon) {
@@ -555,7 +597,7 @@ function BusyBeeClass::FillMonitors(cmon)
     }
 }
 
-function BusyBeeClass::UpdateCompanyMonitors(old_cmon, cmon)
+function BeeProductiveClass::UpdateCompanyMonitors(old_cmon, cmon)
 {
     foreach (comp_id, old_mon in old_cmon) {
         if (comp_id in cmon) {
@@ -566,7 +608,7 @@ function BusyBeeClass::UpdateCompanyMonitors(old_cmon, cmon)
     }
 }
 
-function BusyBeeClass::UpdateCargoMonitors(comp_id, old_mon, mon)
+function BeeProductiveClass::UpdateCargoMonitors(comp_id, old_mon, mon)
 {
     foreach (cargo_id, old_rmon in old_mon) {
         if (cargo_id in mon) {
@@ -577,7 +619,7 @@ function BusyBeeClass::UpdateCargoMonitors(comp_id, old_mon, mon)
     }
 }
 
-function BusyBeeClass::UpdateResourceMonitors(comp_id, cargo_id, old_rmon, rmon)
+function BeeProductiveClass::UpdateResourceMonitors(comp_id, cargo_id, old_rmon, rmon)
 {
     if ("town" in old_rmon) {
         if ("town" in rmon) {
@@ -595,7 +637,7 @@ function BusyBeeClass::UpdateResourceMonitors(comp_id, cargo_id, old_rmon, rmon)
     }
 }
 
-function BusyBeeClass::UpdateTownMonitors(comp_id, cargo_id, old_tmon, tmon)
+function BeeProductiveClass::UpdateTownMonitors(comp_id, cargo_id, old_tmon, tmon)
 {
     foreach (town_id, _ in old_tmon) {
         if (!(town_id in tmon)) {
@@ -607,7 +649,7 @@ function BusyBeeClass::UpdateTownMonitors(comp_id, cargo_id, old_tmon, tmon)
     }
 }
 
-function BusyBeeClass::UpdateIndMonitors(comp_id, cargo_id, old_imon, imon)
+function BeeProductiveClass::UpdateIndMonitors(comp_id, cargo_id, old_imon, imon)
 {
     foreach (ind_id, _ in old_imon) {
         if (!(ind_id in imon)) {
@@ -617,4 +659,77 @@ function BusyBeeClass::UpdateIndMonitors(comp_id, cargo_id, old_imon, imon)
             GSLog.Info(text);
         }
     }
+}
+
+function BeeProductiveClass::LevelUpIndustry(industry_id)
+{
+	// Add to this.industries if not yet exist
+	if (!this.industries.rawin(industry_id)) {
+		this.industries.rawset(industry_id, {
+			industry_id = industry_id,
+			tile = GSIndustry.GetLocation(industry_id),
+			level = 0,
+		});
+	}
+
+	// Level up
+	local ind = this.industries.rawget(industry_id);
+	ind.level++;
+
+	GSLog.Info("Level up " + GSIndustry.GetName(ind.industry_id));
+
+	this.SetIndustryProduction(ind.industry_id, ind.level);
+}
+
+function IndustryTownValuator(industry_id)
+{
+	local tile = GSIndustry.GetLocation(industry_id);
+	return GSTile.GetClosestTown(tile);
+}
+
+function BeeProductiveClass::LevelUpTownIndustries(town_id)
+{
+	local industry_list = GSIndustryList();
+	industry_list.Valuate(IndustryTownValuator);
+	industry_list.KeepValue(town_id);
+
+	foreach (industry_id, _ in industry_list) {
+		this.LevelUpIndustry(industry_id);
+	}
+}
+
+/**
+ * Remove closed industries from this.industries
+ */
+function BeeProductiveClass::RemoveClosedIndustries()
+{
+	local closed = [];
+	foreach (_, ind in this.industries) {
+		if (!GSIndustry.IsValidIndustry(ind.industry_id) ||
+				GSIndustry.GetLocation(ind.industry_id) != ind.tile) {
+			closed.append(ind.industry_id);
+		}
+	}
+
+	// remove closed industries
+	foreach (ind in closed) {
+		this.industries.rawdelete(ind.industry_id);
+	}
+}
+
+/**
+ * Update NewGRF with production levels of all industries
+ */
+function BeeProductiveClass::SetAllIndustriesProduction()
+{
+	// Industries not in this.industries has not been leveled up and is set to
+	// lowest production by NewGRF upon industry construction.
+	foreach (_, ind in this.industries) {
+		this.SetIndustryProduction(ind.industry_id, ind.level);
+	}
+}
+
+function BeeProductiveClass::SetIndustryProduction(industry_id, level)
+{
+	GSIndustry.SendMessage(industry_id, level * 128);
 }

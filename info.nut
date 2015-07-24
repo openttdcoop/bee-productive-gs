@@ -1,18 +1,18 @@
 /*
- * This file is part of BusyBee, which is a GameScript for OpenTTD
+ * This file is part of BeeProductive, which is a GameScript for OpenTTD
  * Copyright (C) 2014-2015  alberth / andythenorth
  *
- * BusyBee is free software; you can redistribute it and/or modify it
+ * BeeProductive is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by
  * the Free Software Foundation; version 2 of the License
  *
- * BusyBee is distributed in the hope that it will be useful,
+ * BeeProductive is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with BusyBee; If not, see <http://www.gnu.org/licenses/> or
+ * along with BeeProductive; If not, see <http://www.gnu.org/licenses/> or
  * write to the Free Software Foundation, Inc., 51 Franklin Street,
  * Fifth Floor, Boston, MA 02110-1301 USA.
  */
@@ -24,21 +24,21 @@ PROGRAM_VERSION <- Syntax error, set by 'make bundle'.
 PROGRAM_DATE <- Syntax error, set by 'make bundle'.
 PROGRAM_NAME <- Syntax error, set by 'make bundle'.
 
-class BusyBeeInfo extends GSInfo {
-    function GetAuthor()        { return "alberth & andythenorth"; }
-    function GetName()          { return "Busy Bee"; } // Old: return PROGRAM_NAME;
-    function GetDescription()   { return "Make connection, transport cargo"; }
+class BeeProductiveInfo extends GSInfo {
+    function GetAuthor()        { return "alberth, andythenorth & zuu"; }
+    function GetName()          { return "Bee Productive"; } // Old: return PROGRAM_NAME;
+    function GetDescription()   { return "Make connection, transport cargo to upgrade industries. Fork of Busy Bee. Requires gs->NewGRF patch and imesseger-v2.grf"; }
     function GetVersion()       { return PROGRAM_VERSION + SAVEGAME_VERSION * 100000; }
     function GetDate()          { return PROGRAM_DATE; }
-    function CreateInstance()   { return "BusyBeeClass"; }
-    function GetShortName()     { return "BBEE"; }
+    function CreateInstance()   { return "BeeProductiveClass"; }
+    function GetShortName()     { return "PBEE"; }
     function GetAPIVersion()    { return "1.5"; }
-    function GetUrl()           { return "http://dev.openttdcoop.org/projects/busy-bee-gs"; }
+    function GetUrl()           { return ""; }
     function MinVersionToLoad() { return MINCOMPATIBLE_SAVEGAME_VERSION; }
     function GetSettings();
 }
 
-function BusyBeeInfo::GetSettings()
+function BeeProductiveInfo::GetSettings()
 {
     GSInfo.AddSetting({name="num_goals",
                        description="Number of goals for a company (1-10)",
@@ -51,7 +51,7 @@ function BusyBeeInfo::GetSettings()
                        flags=GSInfo.CONFIG_NONE});
     GSInfo.AddSetting({name="wait_years",
                        description="Time to wait before first delivery (4-20 year)",
-                       min_value=4,
+                       min_value=1,
                        max_value=20,
                        easy_value=10,
                        medium_value=5,
@@ -97,4 +97,4 @@ function BusyBeeInfo::GetSettings()
                        flags=GSInfo.CONFIG_INGAME});
 }
 
-RegisterGS(BusyBeeInfo());
+RegisterGS(BeeProductiveInfo());
