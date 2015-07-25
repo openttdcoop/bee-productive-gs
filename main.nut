@@ -744,5 +744,5 @@ function BeeProductiveClass::SetAllIndustriesProduction()
 
 function BeeProductiveClass::SetIndustryProduction(industry_id, level)
 {
-	GSIndustry.SendMessage(industry_id, 512 + level * 128);
+	GSIndustry.SendMessage(industry_id, 512 + level * 256);
 }
