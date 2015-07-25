@@ -11,3 +11,5 @@ STR_TOWN_NAME               :{WHITE}{TOWN}
 STR_TOWN_NAME_NEWS          :{TOWN}
 STR_INDUSTRY_NAME           :{YELLOW}{INDUSTRY}
 STR_INDUSTRY_NAME_NEWS      :{INDUSTRY}
+STR_INDUSTRY_PRIMARY_LEVEL_UP_NEWS   :Industry upgraded!{}{}{INDUSTRY} has been upgraded and will now increase production
+STR_INDUSTRY_SECONDARY_LEVEL_UP_NEWS :Industry upgraded!{}{}{INDUSTRY} has been upgraded and will now produce more for each supplied raw material

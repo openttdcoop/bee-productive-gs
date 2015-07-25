@@ -677,8 +677,16 @@ function BeeProductiveClass::LevelUpIndustry(industry_id)
 	ind.level++;
 
 	GSLog.Info("Level up " + GSIndustry.GetName(ind.industry_id));
+	local news_string = IndustryIsPrimaryValuator(industry_id) ? GSText.STR_INDUSTRY_PRIMARY_LEVEL_UP_NEWS : GSText.STR_INDUSTRY_SECONDARY_LEVEL_UP_NEWS;
+	GSNews.Create(GSNews.NT_GENERAL, GSText(news_string, industry_id), GSCompany.COMPANY_INVALID, GSNews.NR_INDUSTRY, industry_id);
 
 	this.SetIndustryProduction(ind.industry_id, ind.level);
+}
+
+function IndustryIsPrimaryValuator(industry_id)
+{
+	local ind_type = GSIndustry.GetIndustryType(industry_id);
+	return GSIndustryType.IsRawIndustry(ind_type);
 }
 
 function IndustryTownValuator(industry_id)
@@ -687,9 +695,14 @@ function IndustryTownValuator(industry_id)
 	return GSTile.GetClosestTown(tile);
 }
 
+/**
+ * Level up primary industries that are closest to given town.
+ */
 function BeeProductiveClass::LevelUpTownIndustries(town_id)
 {
 	local industry_list = GSIndustryList();
+	industry_list.Valuate(IndustryIsPrimaryValuator);
+	industry_list.KeepValue(1);
 	industry_list.Valuate(IndustryTownValuator);
 	industry_list.KeepValue(town_id);
 
@@ -731,5 +744,5 @@ function BeeProductiveClass::SetAllIndustriesProduction()
 
 function BeeProductiveClass::SetIndustryProduction(industry_id, level)
 {
-	GSIndustry.SendMessage(industry_id, level * 128);
+	GSIndustry.SendMessage(industry_id, 512 + level * 128);
 }
