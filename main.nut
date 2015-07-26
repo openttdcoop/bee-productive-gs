@@ -473,7 +473,6 @@ function BeeProductiveClass::Start()
     local new_goal_timeout = 0;
     local finished_timeout = 0;
     local monitor_timeout = 0;
-	local ind_prod_timeout = 0;
     while (true) {
         local result = this.ProcessEvents();
         if (result.force_goal) new_goal_timeout = 0;
@@ -527,15 +526,6 @@ function BeeProductiveClass::Start()
             finished_timeout = 30 * 74; // By default, check for finished goals every 30 days (may be forced by other processes).
         }
 
-		// Update industry production of leveled up industries. Experimental OpenTTD gs->newgrf patch
-		// will reset industries to level 0 upon random production change. So we need to set leveled up
-		// industries often to work around this.
-		if (ind_prod_timeout <= 0) {
-			this.SetAllIndustriesProduction();
-			// timeout: 30 days if no leveled up industries, otherwise 5 days
-			ind_prod_timeout = this.industries.len() == 0 ? 30 * 74 : 5 * 74;
-		}
-
 //        local lake_news = GSText(GSText.STR_LAKE_NEWS);
 //        GSNews.Create(GSNews.NT_GENERAL, lake_news, GSCompany.COMPANY_INVALID);
 //        GSGoal.Question(1, GSCompany.COMPANY_INVALID, lake_news, GSGoal.QT_INFORMATION, GSGoal.BUTTON_GO);
@@ -545,14 +535,12 @@ function BeeProductiveClass::Start()
         if (delay_time > new_goal_timeout)  delay_time = new_goal_timeout;
         if (delay_time > monitor_timeout)   delay_time = monitor_timeout;
         if (delay_time > finished_timeout)  delay_time = finished_timeout;
-        if (delay_time > ind_prod_timeout)  delay_time = ind_prod_timeout;
 
         if (delay_time > 0) this.Sleep(delay_time);
 
         new_goal_timeout  -= delay_time;
         monitor_timeout   -= delay_time;
         finished_timeout  -= delay_time;
-        ind_prod_timeout  -= delay_time;
 
         // Update timeout of the goals as well.
         if (!GSGame.IsPaused()) {
@@ -727,18 +715,6 @@ function BeeProductiveClass::RemoveClosedIndustries()
 	// remove closed industries
 	foreach (ind in closed) {
 		this.industries.rawdelete(ind.industry_id);
-	}
-}
-
-/**
- * Update NewGRF with production levels of all industries
- */
-function BeeProductiveClass::SetAllIndustriesProduction()
-{
-	// Industries not in this.industries has not been leveled up and is set to
-	// lowest production by NewGRF upon industry construction.
-	foreach (_, ind in this.industries) {
-		this.SetIndustryProduction(ind.industry_id, ind.level);
 	}
 }
 
