@@ -744,5 +744,6 @@ function BeeProductiveClass::SetAllIndustriesProduction()
 
 function BeeProductiveClass::SetIndustryProduction(industry_id, level)
 {
-	GSIndustry.SendMessage(industry_id, 512 + level * 256);
+	local FROM_GS_FLAG = 0x80000000;
+	GSIndustry.SendMessage(industry_id, (512 + level * 256) | FROM_GS_FLAG);
 }
